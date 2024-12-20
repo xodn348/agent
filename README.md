@@ -1,44 +1,26 @@
-# Claude API Examples
+# Claude Examples
 
-This repository contains examples and guides for working with Anthropic's Claude API. Claude is a state-of-the-art AI assistant capable of understanding and generating human-like text for various tasks.
+A collection of examples and best practices for working with Anthropic's Claude AI model.
+
+## Overview
+
+This repository provides examples and guidance for:
+- Basic usage of Claude API
+- Writing effective prompts
+- Handling responses
+- Best practices
+- Common use cases
 
 ## Getting Started
 
-1. Install the required dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-2. Set up your API key:
-   ```bash
-   export ANTHROPIC_API_KEY='your-api-key'
-   ```
-
-3. Run the example script:
-   ```bash
-   python examples/basic_chat.py
-   ```
+1. Clone this repository
+2. Install dependencies: `pip install anthropic`
+3. Set your API key: `export ANTHROPIC_API_KEY='your-key-here'`
 
 ## Examples
 
-- `examples/basic_chat.py`: Simple example of having a conversation with Claude
-- `examples/streaming.py`: Example of using streaming responses
-- `examples/function_calling.py`: Example of using Claude's function calling capabilities
+Check the `examples/` directory for sample code and use cases.
 
-## Best Practices
+## Documentation
 
-See [BEST_PRACTICES.md](BEST_PRACTICES.md) for guidelines on:
-- Writing effective prompts
-- Managing context length
-- Handling responses
-- Error handling
-
-## Resources
-
-- [Official Claude API Documentation](https://docs.anthropic.com/claude/)
-- [Anthropic's AI Safety Guidelines](https://www.anthropic.com/safety)
-- [Claude Web Interface](https://claude.ai)
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+For full documentation, visit [Anthropic's Claude Documentation](https://docs.anthropic.com/claude/)
