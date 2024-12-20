@@ -1,26 +1,22 @@
-# Claude Examples
+# AI and Blockchain Analysis Tools
 
-A collection of examples and best practices for working with Anthropic's Claude AI model.
+This repository contains various tools and utilities for AI and blockchain analysis.
 
-## Overview
+## Projects
 
-This repository provides examples and guidance for:
-- Basic usage of Claude API
-- Writing effective prompts
-- Handling responses
-- Best practices
-- Common use cases
+### Bitcoin Analysis
+- Real-time transaction monitoring
+- Mempool statistics
+- Fee analysis
 
 ## Getting Started
 
-1. Clone this repository
-2. Install dependencies: `pip install anthropic`
-3. Set your API key: `export ANTHROPIC_API_KEY='your-key-here'`
+Each project has its own README with specific instructions.
 
-## Examples
+## Contributing
 
-Check the `examples/` directory for sample code and use cases.
+Feel free to submit issues and pull requests.
 
-## Documentation
+## License
 
-For full documentation, visit [Anthropic's Claude Documentation](https://docs.anthropic.com/claude/)
+MIT License
