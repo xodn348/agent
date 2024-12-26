@@ -1,53 +1,88 @@
-# Day 1: Bitcoin Address Generator
+const bitcoin = require('bitcoinjs-lib');
+const bip39 = require('bip39');
+const ecc = require('tiny-secp256k1');
+const { BIP32Factory } = require('bip32');
+const bip32 = BIP32Factory(ecc);
 
-This example demonstrates how to create different types of Bitcoin addresses including Legacy, SegWit, and Native SegWit addresses.
+class BitcoinAddressGenerator {
+    constructor(network = 'testnet') {
+        this.network = network === 'testnet' ? bitcoin.networks.testnet : bitcoin.networks.bitcoin;
+    }
 
-## Features
+    generateMnemonic() {
+        return bip39.generateMnemonic();
+    }
 
-- Generate mnemonic seed phrases
-- Create HD wallets
-- Generate multiple address types:
-  - Legacy (P2PKH)
-  - SegWit (P2SH-P2WPKH)
-  - Native SegWit (P2WPKH)
-- Validate Bitcoin addresses
+    async createWalletFromMnemonic(mnemonic) {
+        const seed = await bip39.mnemonicToSeed(mnemonic);
+        const root = bip32.fromSeed(seed, this.network);
+        return root;
+    }
 
-## Setup
+    async generateAddresses(mnemonic) {
+        const root = await this.createWalletFromMnemonic(mnemonic);
+        const path = `m/44'/0'/0'/0/0`;
+        const child = root.derivePath(path);
 
-1. Install dependencies:
-```bash
-npm init -y
-npm install bitcoinjs-lib bip39 bip32 tiny-secp256k1
-```
+        const legacy = bitcoin.payments.p2pkh({
+            pubkey: child.publicKey,
+            network: this.network,
+        });
 
-2. Run the example:
-```bash
-node bitcoin_address_generator.js
-```
+        const p2sh = bitcoin.payments.p2sh({
+            redeem: bitcoin.payments.p2wpkh({
+                pubkey: child.publicKey,
+                network: this.network,
+            }),
+            network: this.network,
+        });
 
-## Usage Example
+        const bech32 = bitcoin.payments.p2wpkh({
+            pubkey: child.publicKey,
+            network: this.network,
+        });
 
-```javascript
-const generator = new BitcoinAddressGenerator('testnet');
+        return {
+            mnemonic,
+            path,
+            legacy: legacy.address,
+            segwit: p2sh.address,
+            nativeSegwit: bech32.address,
+            privateKey: child.toWIF(),
+        };
+    }
 
-// Generate new wallet
-const mnemonic = generator.generateMnemonic();
-console.log('Mnemonic:', mnemonic);
+    validateAddress(address) {
+        try {
+            bitcoin.address.toOutputScript(address, this.network);
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
+}
 
-// Generate addresses
-const addresses = await generator.generateAddresses(mnemonic);
-console.log('Legacy Address:', addresses.legacy);
-console.log('SegWit Address:', addresses.segwit);
-console.log('Native SegWit Address:', addresses.nativeSegwit);
-```
+async function main() {
+    const generator = new BitcoinAddressGenerator('testnet');
+    const mnemonic = generator.generateMnemonic();
+    console.log('Mnemonic:', mnemonic);
+    
+    const addresses = await generator.generateAddresses(mnemonic);
+    console.log('\nWallet Details:');
+    console.log('Path:', addresses.path);
+    console.log('Legacy Address:', addresses.legacy);
+    console.log('SegWit Address:', addresses.segwit);
+    console.log('Native SegWit Address:', addresses.nativeSegwit);
+    console.log('Private Key:', addresses.privateKey);
+    
+    console.log('\nAddress Validation:');
+    console.log('Legacy Valid:', generator.validateAddress(addresses.legacy));
+    console.log('SegWit Valid:', generator.validateAddress(addresses.segwit));
+    console.log('Native SegWit Valid:', generator.validateAddress(addresses.nativeSegwit));
+}
 
-## Next Steps
+if (require.main === module) {
+    main().catch(console.error);
+}
 
-1. Learn about each address type:
-   - Legacy: Original Bitcoin address format
-   - SegWit: Segregated Witness address format
-   - Native SegWit: Newer format with better efficiency
-
-2. Try sending test transactions between different address types
-
-3. Explore the differences in transaction fees between address types
+module.exports = BitcoinAddressGenerator;
