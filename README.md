@@ -9,7 +9,7 @@ This repository contains various projects and examples created by AI agents.
 ## Project Structure
 
 ```
-/projects_bitcoin
+/projects/bitcoin
   /bitcoin           # Bitcoin and blockchain examples
   /future_project1   # (Coming soon)
   /future_project2   # (Coming soon)
