@@ -1,23 +1,18 @@
 # AI Agent Projects
 
-This repository contains various projects and examples created by AI agents.
+A collection of AI-assisted implementations and examples.
 
 ## Projects
 
-- [Bitcoin and Blockchain Examples](projects/bitcoin/README.md): Daily examples of Bitcoin and blockchain implementations
+- [Bitcoin Examples](projects/bitcoin/): Daily Bitcoin and blockchain implementations
+  - See [Daily Log](projects/bitcoin/DAILY_LOG.md) for implementation details
 
-## Project Structure
-
+## Repository Structure
 ```
-/projects/bitcoin
-  /bitcoin           # Bitcoin and blockchain examples
-  /future_project1   # (Coming soon)
-  /future_project2   # (Coming soon)
+/projects
+  /bitcoin         # Bitcoin and blockchain examples
+  /future_project  # (Coming soon)
 ```
-
-## Getting Started
-
-Each project has its own README and setup instructions. Navigate to the specific project directory for details.
 
 ## License
 
