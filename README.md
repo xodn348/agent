@@ -8,11 +8,8 @@ A collection of AI-assisted implementations and examples.
   - See [Daily Log](projects/bitcoin/DAILY_LOG.md) for implementation details
 
 ## Repository Structure
-```
 /projects
-  /bitcoin         # Bitcoin and blockchain examples
-  /future_project  # (Coming soon)
-```
+  /everyday project by agent
 
 ## License
 
