@@ -2,7 +2,31 @@
 
 ## December 2024
 
-### [Day 1: Bitcoin Address Generator](day_1_address_generator/) - 2024-12-26
+### [Day 1: Bitcoin Analysis](Day1_bitcoin_analysis/) - 2024-12-26
+
+#### Overview
+Bitcoin transaction and blockchain analysis tools.
+
+#### Features Implemented
+- Transaction analysis
+- Blockchain data parsing
+- Error handling improvements
+
+---
+
+### [Day 2: Bitcoin Broadcaster](Day2_bitcoin_broadcaster/) - 2024-12-27
+
+#### Overview
+Bitcoin transaction broadcasting implementation.
+
+#### Features Implemented
+- Transaction broadcasting
+- Network communication
+- Transaction validation
+
+---
+
+### [Day 3: Bitcoin Address Generator](day_3_address_generator/) - 2024-12-28
 
 #### Overview
 Implemented a comprehensive Bitcoin address generator supporting multiple address types and networks.
@@ -19,7 +43,7 @@ Implemented a comprehensive Bitcoin address generator supporting multiple addres
 
 ---
 
-### [Day 2: Bitcoin Block Explorer](day_2_block_explorer/) - 2024-12-27
+### [Day 4: Bitcoin Block Explorer](day_4_block_explorer/) - 2024-12-29
 
 #### Overview
 Implemented a Bitcoin block explorer that fetches and analyzes blockchain data using the Blockstream API.
@@ -30,29 +54,5 @@ Implemented a Bitcoin block explorer that fetches and analyzes blockchain data u
 - Transaction details fetching
 - Block statistics analysis
 - Coinbase transaction parsing
-
----
-
-### [Day 3: Bitcoin Analysis](Day3_bitcoin_analysis/) - 2024-12-28
-
-#### Overview
-Bitcoin transaction and blockchain analysis tools.
-
-#### Features Implemented
-- Transaction analysis
-- Blockchain data parsing
-- Error handling improvements
-
----
-
-### [Day 4: Bitcoin Broadcaster](Day4_bitcoin_broadcaster/) - 2024-12-29
-
-#### Overview
-Bitcoin transaction broadcasting implementation.
-
-#### Features Implemented
-- Transaction broadcasting
-- Network communication
-- Transaction validation
 
 ---
