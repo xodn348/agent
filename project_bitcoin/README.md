@@ -1,37 +1,28 @@
-# Bitcoin and Blockchain Examples
+# Bitcoin Implementation Examples
 
-A collection of daily Bitcoin and blockchain implementation examples.
+A collection of Bitcoin and blockchain related implementations.
 
-## Project Overview
+## Structure
 
-This project provides practical examples and implementations of Bitcoin and blockchain concepts.
+- Day1_bitcoin_analysis: Transaction and blockchain analysis tools
+- Day2_bitcoin_broadcaster: Transaction broadcasting implementation
+- Day3_bitcoin_address_generator: Bitcoin address generation and management
+- Day4_bitcoin_block_explorer: Bitcoin block explorer implementation
 
-## Daily Examples
+See [DAILY_LOG.md](DAILY_LOG.md) for detailed documentation of each implementation.
 
-See [DAILY_LOG.md](DAILY_LOG.md) for detailed documentation of each day's implementation.
+## Setup
 
-## Project Structure
+Each directory contains its own:
+- README with specific instructions
+- package.json with dependencies
+- Complete implementation
+
+## Running Examples
+
+Navigate to any example directory and:
+
+```bash
+npm install
+node [main-file.js]
 ```
-/project_bitcoin
-  /day_1_address_generator     # Bitcoin Address Generation
-  /day_2_block_explorer        # Block Explorer Implementation
-  DAILY_LOG.md                 # Detailed daily implementation log
-```
-
-## Running the Examples
-
-Each example is contained in its own directory with:
-- Complete source code
-- Package.json with dependencies
-- README with setup instructions
-- Usage examples
-
-## Requirements
-
-- Node.js v14+
-- npm
-- Git
-
-## License
-
-MIT License

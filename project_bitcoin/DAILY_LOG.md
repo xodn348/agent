@@ -26,33 +26,28 @@ Bitcoin transaction broadcasting implementation.
 
 ---
 
-### [Day 3: Bitcoin Address Generator](day_3_address_generator/) - 2024-12-28
+### [Day 3: Bitcoin Address Generator](Day3_bitcoin_address_generator/) - 2024-12-28
 
 #### Overview
-Implemented a comprehensive Bitcoin address generator supporting multiple address types and networks.
+Implements Bitcoin address generation and management.
 
 #### Features Implemented
-- Mnemonic seed phrase generation
-- HD wallet creation
-- Multiple address types:
-  - Legacy (P2PKH)
-  - SegWit (P2SH-P2WPKH)
-  - Native SegWit (P2WPKH)
+- Multiple address types (Legacy, SegWit, Native SegWit)
+- HD wallet support
+- Mnemonic generation
 - Address validation
-- Testnet support
 
 ---
 
-### [Day 4: Bitcoin Block Explorer](day_4_block_explorer/) - 2024-12-29
+### [Day 4: Bitcoin Block Explorer](Day4_bitcoin_block_explorer/) - 2024-12-29
 
 #### Overview
-Implemented a Bitcoin block explorer that fetches and analyzes blockchain data using the Blockstream API.
+A block explorer implementation for Bitcoin blockchain.
 
 #### Features Implemented
-- Latest block information retrieval
-- Block lookup by height or hash
-- Transaction details fetching
-- Block statistics analysis
-- Coinbase transaction parsing
+- Block data fetching
+- Transaction analysis
+- Block statistics
+- Blockchain traversal
 
 ---
