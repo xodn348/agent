@@ -2,7 +2,7 @@
 
 ## December 2024
 
-### [Day 5: Simple Blockchain](Day5_simple_blockchain/) - 2024-12-30
+### [Day 5: Simple Blockchain](Day5_simple_blockchain/) - 2024-12-28
 
 #### Overview
 Implemented a basic blockchain system demonstrating core concepts of blockchain technology.
@@ -39,7 +39,7 @@ blockchain.minePendingTransactions('miner-address');
 
 ---
 
-### [Day 4: Bitcoin Block Explorer](Day4_bitcoin_block_explorer/) - 2024-12-29
+### [Day 4: Bitcoin Block Explorer](Day4_bitcoin_block_explorer/) - 2024-12-27
 
 #### Overview
 A block explorer implementation for Bitcoin blockchain.
@@ -52,7 +52,7 @@ A block explorer implementation for Bitcoin blockchain.
 
 ---
 
-### [Day 3: Bitcoin Address Generator](Day3_bitcoin_address_generator/) - 2024-12-28
+### [Day 3: Bitcoin Address Generator](Day3_bitcoin_address_generator/) - 2024-12-26
 
 #### Overview
 Implements Bitcoin address generation and management.
@@ -65,7 +65,7 @@ Implements Bitcoin address generation and management.
 
 ---
 
-### [Day 2: Bitcoin Broadcaster](Day2_bitcoin_broadcaster/) - 2024-12-27
+### [Day 2: Bitcoin Broadcaster](Day2_bitcoin_broadcaster/) - 2024-12-25
 
 #### Overview
 Bitcoin transaction broadcasting implementation.
@@ -77,7 +77,7 @@ Bitcoin transaction broadcasting implementation.
 
 ---
 
-### [Day 1: Bitcoin Analysis](Day1_bitcoin_analysis/) - 2024-12-26
+### [Day 1: Bitcoin Analysis](Day1_bitcoin_analysis/) - 2024-12-24
 
 #### Overview
 Bitcoin transaction and blockchain analysis tools.
