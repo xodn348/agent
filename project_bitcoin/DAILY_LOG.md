@@ -2,10 +2,42 @@
 
 ## December 2024
 
+### [Day 6: Merkle Tree](Day6_merkle_tree/) - 2024-12-29
+
+#### Overview
+Implemented a Merkle Tree data structure used in Bitcoin for efficient transaction verification.
+
+#### Features Implemented
+- Merkle Tree construction
+- Proof generation and verification
+- Transaction validation
+- Tree visualization
+- Hash combination logic
+
+#### Technical Details
+- SHA256 hashing
+- Binary tree structure
+- Proof path generation
+- Transaction inclusion verification
+
+#### Files
+- `merkle_tree.js`: Main implementation
+- `package.json`: Dependencies
+- `README.md`: Usage instructions
+
+#### Usage Example
+```javascript
+const merkleTree = new MerkleTree(transactions);
+const proof = merkleTree.getProof(transaction);
+const isValid = merkleTree.verifyProof(transaction, proof);
+```
+
+---
+
 ### [Day 5: Simple Blockchain](Day5_simple_blockchain/) - 2024-12-28
 
 #### Overview
-Implemented a basic blockchain system demonstrating core concepts of blockchain technology.
+Implemented a basic blockchain system demonstrating core concepts.
 
 #### Features Implemented
 - Block creation and mining
@@ -13,29 +45,6 @@ Implemented a basic blockchain system demonstrating core concepts of blockchain 
 - Transaction handling
 - Chain validation
 - Balance tracking
-- Genesis block creation
-
-#### Technical Details
-- SHA256 hashing for block creation
-- Difficulty-based mining
-- Transaction verification
-- Chain integrity checking
-
-#### Files
-- `simple_blockchain.js`: Main implementation
-- `package.json`: Dependencies
-- `README.md`: Usage instructions
-
-#### Usage Example
-```javascript
-const blockchain = new Blockchain();
-blockchain.addTransaction({
-    fromAddress: 'Alice',
-    toAddress: 'Bob',
-    amount: 50
-});
-blockchain.minePendingTransactions('miner-address');
-```
 
 ---
 
