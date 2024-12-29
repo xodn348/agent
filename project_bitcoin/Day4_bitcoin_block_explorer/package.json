@@ -1,0 +1,13 @@
+{
+  "name": "bitcoin-block-explorer",
+  "version": "1.0.0",
+  "description": "Bitcoin block explorer implementation",
+  "main": "bitcoin_block_explorer.js",
+  "scripts": {
+    "start": "node bitcoin_block_explorer.js",
+    "test": "node bitcoin_block_explorer.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.2"
+  }
+}
