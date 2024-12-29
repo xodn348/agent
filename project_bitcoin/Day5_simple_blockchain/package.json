@@ -1,0 +1,12 @@
+{
+  "name": "simple-blockchain",
+  "version": "1.0.0",
+  "description": "Simple blockchain implementation",
+  "main": "simple_blockchain.js",
+  "scripts": {
+    "start": "node simple_blockchain.js"
+  },
+  "dependencies": {
+    "crypto": "^1.0.1"
+  }
+}
