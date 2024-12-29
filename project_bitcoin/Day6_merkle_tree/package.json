@@ -1,0 +1,13 @@
+{
+  "name": "merkle-tree",
+  "version": "1.0.0",
+  "description": "Bitcoin Merkle Tree implementation",
+  "main": "merkle_tree.js",
+  "scripts": {
+    "start": "node merkle_tree.js",
+    "test": "node merkle_tree.js"
+  },
+  "dependencies": {
+    "crypto": "^1.0.1"
+  }
+}
