@@ -1,4 +1,5 @@
-from qiskit import QuantumCircuit, Aer, execute
+from qiskit import QuantumCircuit
+from qiskit_aer import Aer
 from qiskit.visualization import plot_histogram
 import numpy as np
 
@@ -21,8 +22,8 @@ class QuantumBasics:
         print('Bell State Circuit:')
         print(qc)
 
-        # Execute the circuit
-        job = execute(qc, self.simulator, shots=1000)
+        # Execute using backend directly
+        job = self.simulator.run(qc, shots=1000)
         result = job.result()
         counts = result.get_counts(qc)
 
@@ -41,8 +42,8 @@ class QuantumBasics:
         print('\nSuperposition Circuit:')
         print(qc)
 
-        # Execute
-        job = execute(qc, self.simulator, shots=1000)
+        # Execute using backend directly
+        job = self.simulator.run(qc, shots=1000)
         result = job.result()
         counts = result.get_counts(qc)
 
@@ -61,8 +62,8 @@ class QuantumBasics:
         print(f'\nRotation Circuit (angle: {angle:.2f}):')
         print(qc)
 
-        # Execute
-        job = execute(qc, self.simulator, shots=1000)
+        # Execute using backend directly
+        job = self.simulator.run(qc, shots=1000)
         result = job.result()
         counts = result.get_counts(qc)
 
@@ -86,8 +87,8 @@ class QuantumBasics:
         print('\nBasic Gates Circuit:')
         print(qc)
 
-        # Execute
-        job = execute(qc, self.simulator, shots=1000)
+        # Execute using backend directly
+        job = self.simulator.run(qc, shots=1000)
         result = job.result()
         counts = result.get_counts(qc)
 
