@@ -2,7 +2,39 @@
 
 ## December 2024
 
-### [Day 6: Merkle Tree](Day6_merkle_tree/) - 2024-12-29
+### [Day 7: Bitcoin Script Interpreter](Day7_script_interpreter/) - 2024-12-29
+
+#### Overview
+Implemented a Bitcoin Script interpreter to understand and execute Bitcoin's smart contract language.
+
+#### Features Implemented
+- Stack-based execution engine
+- Common Bitcoin Script opcodes
+- P2PKH script support
+- Flow control operations
+- Arithmetic operations
+- Cryptographic operation simulation
+
+#### Technical Details
+- Stack manipulation
+- Opcode implementation
+- Control flow handling
+- Script parsing and execution
+
+#### Files
+- `bitcoin_script_interpreter.js`: Main implementation
+- `package.json`: Dependencies
+- `README.md`: Usage instructions
+
+#### Usage Example
+```javascript
+const interpreter = new BTCScriptInterpreter();
+interpreter.executeScript('OP_DUP OP_HASH160 pubKeyHash OP_EQUALVERIFY OP_CHECKSIG');
+```
+
+---
+
+### [Day 6: Merkle Tree](Day6_merkle_tree/) - 2024-12-28
 
 #### Overview
 Implemented a Merkle Tree data structure used in Bitcoin for efficient transaction verification.
@@ -12,29 +44,10 @@ Implemented a Merkle Tree data structure used in Bitcoin for efficient transacti
 - Proof generation and verification
 - Transaction validation
 - Tree visualization
-- Hash combination logic
-
-#### Technical Details
-- SHA256 hashing
-- Binary tree structure
-- Proof path generation
-- Transaction inclusion verification
-
-#### Files
-- `merkle_tree.js`: Main implementation
-- `package.json`: Dependencies
-- `README.md`: Usage instructions
-
-#### Usage Example
-```javascript
-const merkleTree = new MerkleTree(transactions);
-const proof = merkleTree.getProof(transaction);
-const isValid = merkleTree.verifyProof(transaction, proof);
-```
 
 ---
 
-### [Day 5: Simple Blockchain](Day5_simple_blockchain/) - 2024-12-28
+### [Day 5: Simple Blockchain](Day5_simple_blockchain/) - 2024-12-27
 
 #### Overview
 Implemented a basic blockchain system demonstrating core concepts.
@@ -44,11 +57,10 @@ Implemented a basic blockchain system demonstrating core concepts.
 - Proof of Work implementation
 - Transaction handling
 - Chain validation
-- Balance tracking
 
 ---
 
-### [Day 4: Bitcoin Block Explorer](Day4_bitcoin_block_explorer/) - 2024-12-27
+### [Day 4: Bitcoin Block Explorer](Day4_bitcoin_block_explorer/) - 2024-12-26
 
 #### Overview
 A block explorer implementation for Bitcoin blockchain.
@@ -61,7 +73,7 @@ A block explorer implementation for Bitcoin blockchain.
 
 ---
 
-### [Day 3: Bitcoin Address Generator](Day3_bitcoin_address_generator/) - 2024-12-26
+### [Day 3: Bitcoin Address Generator](Day3_bitcoin_address_generator/) - 2024-12-25
 
 #### Overview
 Implements Bitcoin address generation and management.
@@ -74,7 +86,7 @@ Implements Bitcoin address generation and management.
 
 ---
 
-### [Day 2: Bitcoin Broadcaster](Day2_bitcoin_broadcaster/) - 2024-12-25
+### [Day 2: Bitcoin Broadcaster](Day2_bitcoin_broadcaster/) - 2024-12-24
 
 #### Overview
 Bitcoin transaction broadcasting implementation.
@@ -86,7 +98,7 @@ Bitcoin transaction broadcasting implementation.
 
 ---
 
-### [Day 1: Bitcoin Analysis](Day1_bitcoin_analysis/) - 2024-12-24
+### [Day 1: Bitcoin Analysis](Day1_bitcoin_analysis/) - 2024-12-23
 
 #### Overview
 Bitcoin transaction and blockchain analysis tools.
