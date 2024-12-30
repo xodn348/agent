@@ -1,0 +1,10 @@
+{
+  "name": "bitcoin-script-interpreter",
+  "version": "1.0.0",
+  "description": "Bitcoin Script language interpreter implementation",
+  "main": "bitcoin_script_interpreter.js",
+  "scripts": {
+    "start": "node bitcoin_script_interpreter.js",
+    "test": "node bitcoin_script_interpreter.js"
+  }
+}
