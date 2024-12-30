@@ -10,6 +10,7 @@ A collection of AI-assisted implementations and examples.
 ## Repository Structure
 ```
 /project_bitcoin     # Bitcoin and blockchain examples
+/project_Qiskit      # Quantum computing examples
 ```
 
 ## License
