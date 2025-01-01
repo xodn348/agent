@@ -1,0 +1,13 @@
+{
+  "name": "bitcoin-p2pkh-script",
+  "version": "1.0.0",
+  "description": "Bitcoin P2PKH script implementation",
+  "main": "bitcoin_p2pkh.js",
+  "scripts": {
+    "start": "node bitcoin_p2pkh.js"
+  },
+  "dependencies": {
+    "bitcoinjs-lib": "^6.1.3",
+    "crypto": "^1.0.1"
+  }
+}
