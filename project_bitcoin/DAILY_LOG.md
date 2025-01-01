@@ -2,6 +2,39 @@
 
 ## December 2024
 
+### [Day 8: Bitcoin P2PKH Script](Day8_p2pkh_script/) - 2024-12-29
+
+#### Overview
+Implemented Bitcoin's Pay-to-Public-Key-Hash (P2PKH) script system for transaction validation.
+
+#### Features Implemented
+- Key pair generation
+- P2PKH address creation
+- Locking script (scriptPubKey) creation
+- Unlocking script (scriptSig) creation
+- Transaction verification
+- Script execution simulation
+
+#### Technical Details
+- Uses bitcoinjs-lib for cryptographic operations
+- Full script validation
+- Assembly code generation
+- Transaction debugging tools
+
+#### Files
+- `bitcoin_p2pkh.js`: Main implementation
+- `package.json`: Dependencies
+- `README.md`: Usage instructions
+
+#### Usage Example
+```javascript
+const p2pkh = new P2PKHScript('testnet');
+const keyData = p2pkh.generateKeyPair();
+const txDetails = p2pkh.displayTransactionDetails(keyData, 'Hello Bitcoin!');
+```
+
+---
+
 ### [Day 7: Bitcoin Script Interpreter](Day7_script_interpreter/) - 2024-12-29
 
 #### Overview
@@ -10,27 +43,8 @@ Implemented a Bitcoin Script interpreter to understand and execute Bitcoin's sma
 #### Features Implemented
 - Stack-based execution engine
 - Common Bitcoin Script opcodes
-- P2PKH script support
-- Flow control operations
-- Arithmetic operations
-- Cryptographic operation simulation
-
-#### Technical Details
-- Stack manipulation
-- Opcode implementation
-- Control flow handling
+- Control flow operations
 - Script parsing and execution
-
-#### Files
-- `bitcoin_script_interpreter.js`: Main implementation
-- `package.json`: Dependencies
-- `README.md`: Usage instructions
-
-#### Usage Example
-```javascript
-const interpreter = new BTCScriptInterpreter();
-interpreter.executeScript('OP_DUP OP_HASH160 pubKeyHash OP_EQUALVERIFY OP_CHECKSIG');
-```
 
 ---
 
