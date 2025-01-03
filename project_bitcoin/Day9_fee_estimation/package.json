@@ -1,0 +1,12 @@
+{
+  "name": "bitcoin-fee-estimator",
+  "version": "1.0.0",
+  "description": "Bitcoin transaction fee estimation tools",
+  "main": "bitcoin_fee_estimator.js",
+  "scripts": {
+    "start": "node bitcoin_fee_estimator.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.2"
+  }
+}
