@@ -1,54 +1,61 @@
 # Qiskit Project Daily Log
 
-## December 2024
+## January 2025
 
-### [Day 2: Quantum Measurements](Day2_quantum_measurement/) - 2024-12-29
+### [Day 3: Quantum Algorithms](Day3_quantum_algorithms/) - 2025-01-02
 
 #### Overview
-Implemented quantum measurement concepts and error mitigation techniques.
+Implemented fundamental quantum algorithms using Qiskit.
 
 #### Features Implemented
-- Single qubit measurements
-- Different measurement bases (X, Y, Z)
-- Error mitigation techniques
-- Projective measurements
-- Noise modeling and calibration
+- Deutsch-Jozsa Algorithm
+- Grover's Search Algorithm
+- Quantum Fourier Transform
+- Phase Estimation
 
 #### Technical Details
-- Used Qiskit's QASM simulator
-- Implemented noise models
-- Error mitigation filters
-- Measurement basis transformations
-
-#### Files
-- `quantum_measurement.py`: Main implementation
-- `README.md`: Usage instructions
-
-#### Usage Example
-```python
-from quantum_measurement import QuantumMeasurement
-
-qm = QuantumMeasurement()
-results = qm.single_qubit_measurement()
-```
-
-#### Dependencies
-- qiskit
-- qiskit-aer
-- qiskit-ignis
-- numpy
+- Oracle implementations
+- Amplitude amplification
+- Quantum parallelism
+- Phase rotations
 
 ---
 
-### [Day 1: Quantum Computing Basics](Day1_quantum_basics/) - 2024-12-28
+### [Day 2: Quantum Circuits](Day2_quantum_circuits/) - 2025-01-01
+
+#### Overview
+Implemented various quantum circuit primitives and protocols.
+
+#### Features Implemented
+- Bell State Creation
+- GHZ State
+- Quantum Teleportation
+- Phase Kickback
+- Quantum Fourier Transform
+
+#### Technical Details
+- Multi-qubit entanglement
+- Quantum state transfer
+- Phase operations
+- Circuit optimization
+
+---
+
+### [Day 1: Quantum Basics](Day1_quantum_basics/) - 2024-12-31
 
 #### Overview
 Implemented fundamental quantum computing concepts using Qiskit.
 
 #### Features Implemented
-- Basic quantum gates (X, H, CNOT)
-- Bell state creation
-- Quantum superposition
-- Rotation gates
+- Basic quantum gates
+- Qubit manipulation
+- State preparation
+- Measurements
+
+#### Technical Details
+- Single-qubit gates
+- Two-qubit operations
+- State visualization
+- Measurement statistics
 
 ---
