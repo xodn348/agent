@@ -1,0 +1,13 @@
+{
+  "name": "bitcoin-utxo-multisig",
+  "version": "1.0.0",
+  "description": "Bitcoin UTXO management and multisignature implementation",
+  "main": "bitcoin_utxo_multisig.js",
+  "scripts": {
+    "start": "node bitcoin_utxo_multisig.js"
+  },
+  "dependencies": {
+    "bitcoinjs-lib": "^6.1.3",
+    "axios": "^1.6.2"
+  }
+}
