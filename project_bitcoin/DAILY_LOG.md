@@ -2,34 +2,28 @@
 
 ## January 2025
 
-### [Day 9: Bitcoin Fee Estimation](Day9_fee_estimation/) - 2025-01-02
+### [Day 11: Lightning Network](Day11_lightning_network/) - 2025-01-06
 
 #### Overview
-Implemented a comprehensive Bitcoin transaction fee estimation system.
+Implemented basic Lightning Network functionality including payment channels and HTLCs.
 
 #### Features Implemented
-- Network fee analysis
-- Transaction size calculation
-- Priority-based fee recommendations
-- Mempool monitoring
-- Historical fee trends
+- Payment channel creation and management
+- Hash Time-Locked Contracts (HTLCs)
+- Channel state management
+- Commitment transactions
+- Cooperative/force channel closure
 
 #### Technical Details
-- Real-time network analysis
-- Block data processing
-- Fee rate calculations
-- Size estimation algorithms
+- Multi-signature addresses
+- Time-lock mechanisms
+- State management
+- Transaction signing
 
 #### Files
-- `bitcoin_fee_estimator.js`: Main implementation
+- `lightning_network.js`: Main implementation
 - `package.json`: Dependencies
 - `README.md`: Usage instructions
-
-#### Usage Example
-```javascript
-const estimator = new BitcoinFeeEstimator('testnet');
-const recommendation = await estimator.recommendFee(2, 2, 'medium');
-```
 
 ---
 
