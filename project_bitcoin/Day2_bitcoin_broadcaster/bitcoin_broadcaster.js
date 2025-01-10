@@ -1,182 +1,152 @@
-const bitcoin = require('bitcoinjs-lib');
 const axios = require('axios');
+const bitcoin = require('bitcoinjs-lib');
+const ECPair = require('ecpair').ECPairFactory(require('tiny-secp256k1'));
 
 class BitcoinBroadcaster {
     constructor(network = 'testnet') {
-        this.network = network === 'testnet' ? bitcoin.networks.testnet : bitcoin.networks.bitcoin;
-        this.apiUrl = network === 'testnet' 
+        this.baseUrl = network === 'testnet' 
             ? 'https://blockstream.info/testnet/api'
             : 'https://blockstream.info/api';
+        this.network = network === 'testnet' ? bitcoin.networks.testnet : bitcoin.networks.bitcoin;
     }
 
-    async createTransaction(inputs, outputs, feeRate = 10) {
-        try {
-            const psbt = new bitcoin.Psbt({ network: this.network });
-
-            // Add inputs
-            for (const input of inputs) {
-                const utxoData = await this.getUtxoData(input.txid, input.vout);
-                psbt.addInput({
-                    hash: input.txid,
-                    index: input.vout,
-                    sequence: 0xffffffff,
-                    witnessUtxo: {
-                        script: Buffer.from(utxoData.scriptPubKey, 'hex'),
-                        value: utxoData.value,
-                    },
-                });
-            }
-
-            // Add outputs
-            for (const output of outputs) {
-                psbt.addOutput({
-                    address: output.address,
-                    value: output.value,
-                });
-            }
-
-            return psbt;
-        } catch (error) {
-            throw new Error(`Error creating transaction: ${error.message}`);
-        }
+    generateNewAddress() {
+        const keyPair = ECPair.makeRandom({ network: this.network });
+        const { address } = bitcoin.payments.p2pkh({
+            pubkey: keyPair.publicKey,
+            network: this.network,
+        });
+        
+        return {
+            address,
+            privateKey: keyPair.toWIF(),
+        };
     }
 
-    async getUtxoData(txid, vout) {
+    async getAddressUtxos(address) {
         try {
-            const response = await axios.get(`${this.apiUrl}/tx/${txid}`);
-            const tx = response.data;
-            return tx.vout[vout];
+            console.log(`Fetching UTXOs for address: ${address}`);
+            const response = await axios.get(`${this.baseUrl}/address/${address}/utxo`);
+            console.log('UTXOs found:', response.data);
+            return response.data;
         } catch (error) {
+            console.error('UTXO fetch error details:', error.response?.data || error.message);
             throw new Error(`Error fetching UTXO data: ${error.message}`);
         }
     }
 
-    async signTransaction(psbt, privateKey) {
+    async createTransaction(sourceAddress, destinationAddress, amountBTC, privateKeyWIF) {
         try {
-            const keyPair = bitcoin.ECPair.fromWIF(privateKey, this.network);
+            console.log('Creating transaction with params:', {
+                sourceAddress,
+                destinationAddress,
+                amountBTC
+            });
+
+            // Convert BTC to satoshis
+            const amountSats = Math.floor(amountBTC * 100000000);
             
-            // Sign all inputs
-            for (let i = 0; i < psbt.inputCount; i++) {
-                psbt.signInput(i, keyPair);
+            // Fetch UTXOs
+            const utxos = await this.getAddressUtxos(sourceAddress);
+            
+            if (!utxos || utxos.length === 0) {
+                throw new Error('No UTXOs found for the source address');
             }
 
-            // Finalize all inputs
-            for (let i = 0; i < psbt.inputCount; i++) {
-                psbt.finalizeInput(i);
+            // Create transaction
+            const psbt = new bitcoin.Psbt({ network: this.network });
+            
+            // Add inputs
+            let totalInput = 0;
+            utxos.forEach(utxo => {
+                psbt.addInput({
+                    hash: utxo.txid,
+                    index: utxo.vout,
+                    witnessUtxo: {
+                        script: Buffer.from(utxo.scriptpubkey, 'hex'),
+                        value: utxo.value
+                    }
+                });
+                totalInput += utxo.value;
+            });
+
+            // Calculate fee (simplified fee calculation)
+            const fee = 1000; // 1000 satoshis as example fee
+            
+            // Add outputs
+            psbt.addOutput({
+                address: destinationAddress,
+                value: amountSats
+            });
+
+            // Add change output if necessary
+            const change = totalInput - amountSats - fee;
+            if (change > 546) { // dust threshold
+                psbt.addOutput({
+                    address: sourceAddress,
+                    value: change
+                });
             }
 
-            return psbt;
+            // Sign transaction
+            const keyPair = bitcoin.ECPair.fromWIF(privateKeyWIF, this.network);
+            psbt.signAllInputs(keyPair);
+            psbt.finalizeAllInputs();
+
+            return psbt.extractTransaction().toHex();
         } catch (error) {
-            throw new Error(`Error signing transaction: ${error.message}`);
+            console.error('Transaction creation error:', error);
+            throw new Error(`Error creating transaction: ${error.message}`);
         }
     }
 
-    async broadcast(psbt) {
+    async broadcastTransaction(txHex) {
         try {
-            const tx = psbt.extractTransaction();
-            const txHex = tx.toHex();
-
-            // Broadcast to network
-            const response = await axios.post(
-                `${this.apiUrl}/tx`,
-                txHex,
-                {
-                    headers: { 'Content-Type': 'text/plain' }
-                }
-            );
-
-            return {
-                success: true,
-                txid: tx.getId(),
-                response: response.data
-            };
+            console.log('Broadcasting transaction:', txHex);
+            const response = await axios.post(`${this.baseUrl}/tx`, txHex);
+            console.log('Broadcast response:', response.data);
+            return response.data;
         } catch (error) {
+            console.error('Broadcast error details:', error.response?.data || error.message);
             throw new Error(`Error broadcasting transaction: ${error.message}`);
         }
     }
 
-    async verifyTransaction(txid) {
+    async main() {
         try {
-            const response = await axios.get(`${this.apiUrl}/tx/${txid}`);
-            return {
-                confirmed: response.data.status.confirmed,
-                blockHeight: response.data.status.block_height,
-                blockHash: response.data.status.block_hash,
-                confirmations: response.data.status.block_height ? 
-                    await this.getConfirmations(response.data.status.block_height) : 0
-            };
+            // Use your actual mainnet addresses and amount here
+            const sourceAddress = '1CBBJnFJj5xqdyZRQck479k99gUvTmbkPK';  // The address that has your funds
+            const sourcePrivateKey = 'KwDmi2FWcSQno9GiMocbGKbQy54n4UFBCmF82y4m6EMhx5LTJH1J';  // Private key of source address
+            const destinationAddress = '1FMxMHP44vpS5TaNZaWpeTJwfFiPyFwwrN';  // Where you want to send the funds
+            const amountBTC = 0.0001; // Amount to send in BTC
+
+            console.log('\nStarting mainnet transaction process...');
+            console.log(`From: ${sourceAddress}`);
+            console.log(`To: ${destinationAddress}`);
+            console.log(`Amount: ${amountBTC} BTC`);
+            
+            const txHex = await this.createTransaction(
+                sourceAddress,
+                destinationAddress,
+                amountBTC,
+                sourcePrivateKey
+            );
+            
+            console.log('Transaction created, broadcasting to mainnet...');
+            const txid = await this.broadcastTransaction(txHex);
+            console.log('Transaction broadcast successful!');
+            console.log('TXID:', txid);
+            console.log('View transaction: https://blockstream.info/tx/' + txid);
         } catch (error) {
-            throw new Error(`Error verifying transaction: ${error.message}`);
-        }
-    }
-
-    async getConfirmations(blockHeight) {
-        try {
-            const tipResponse = await axios.get(`${this.apiUrl}/blocks/tip/height`);
-            const currentHeight = tipResponse.data;
-            return currentHeight - blockHeight + 1;
-        } catch (error) {
-            throw new Error(`Error getting confirmations: ${error.message}`);
-        }
-    }
-
-    async displayTransactionDetails(txid) {
-        try {
-            console.log('\nTransaction Details:');
-            console.log('===================');
-            console.log(`TXID: ${txid}`);
-
-            const status = await this.verifyTransaction(txid);
-            console.log('\nStatus:');
-            console.log(`Confirmed: ${status.confirmed}`);
-            if (status.confirmed) {
-                console.log(`Block Height: ${status.blockHeight}`);
-                console.log(`Block Hash: ${status.blockHash}`);
-                console.log(`Confirmations: ${status.confirmations}`);
-            }
-
-            return status;
-        } catch (error) {
-            console.error('Error:', error.message);
+            console.error('Main process error:', error.message);
         }
     }
 }
 
 // Example usage
-async function main() {
-    const broadcaster = new BitcoinBroadcaster('testnet');
-    
-    // Example transaction parameters
-    const inputs = [{
-        txid: 'previous_transaction_id',
-        vout: 0
-    }];
-    
-    const outputs = [{
-        address: 'recipient_address',
-        value: 50000 // in satoshis
-    }];
-
-    try {
-        // Create and sign transaction
-        const psbt = await broadcaster.createTransaction(inputs, outputs);
-        const signedPsbt = await broadcaster.signTransaction(psbt, 'your_private_key');
-        
-        // Broadcast transaction
-        const result = await broadcaster.broadcast(signedPsbt);
-        console.log('Transaction broadcast result:', result);
-        
-        // Verify transaction
-        if (result.success) {
-            await broadcaster.displayTransactionDetails(result.txid);
-        }
-    } catch (error) {
-        console.error('Error:', error.message);
-    }
-}
-
 if (require.main === module) {
-    main().catch(console.error);
+    const broadcaster = new BitcoinBroadcaster('mainnet');
+    broadcaster.main().catch(console.error);
 }
 
 module.exports = BitcoinBroadcaster;

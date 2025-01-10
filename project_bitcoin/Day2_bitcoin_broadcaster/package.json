@@ -1,13 +1,16 @@
 {
   "name": "bitcoin-broadcaster",
   "version": "1.0.0",
-  "description": "Bitcoin transaction broadcasting implementation",
+  "description": "Bitcoin transaction broadcaster",
   "main": "bitcoin_broadcaster.js",
   "scripts": {
-    "start": "node bitcoin_broadcaster.js"
+    "start": "node bitcoin_broadcaster.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "axios": "^1.6.2",
-    "bitcoinjs-lib": "^6.1.3"
+    "axios": "^1.6.7",
+    "bitcoinjs-lib": "^6.1.5",
+    "ecpair": "^2.1.0",
+    "tiny-secp256k1": "^2.2.3"
   }
 }
