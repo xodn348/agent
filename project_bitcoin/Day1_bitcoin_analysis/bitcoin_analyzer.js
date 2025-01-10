@@ -104,10 +104,10 @@ class BitcoinAnalyzer {
 
 // Example usage
 async function main() {
-    const analyzer = new BitcoinAnalyzer('testnet');
+    const analyzer = new BitcoinAnalyzer('mainnet');
     
-    // Example transaction ID
-    const txid = '2e3da8fbc1eaca8ed9b7c2db9d4c5c5e4bfcb788a3ff87626d52d8b9f525b3b5';
+    // Updated to a valid testnet transaction ID
+    const txid = '7301b595279ece985f0c415e420e425451fcf7f684fcce087ba14d10ffec1121';
     await analyzer.displayAnalysis(txid);
 }
 
