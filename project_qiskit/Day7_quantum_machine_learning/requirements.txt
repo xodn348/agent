@@ -1,0 +1,4 @@
+qiskit
+qiskit-machine-learning
+numpy
+scikit-learn
