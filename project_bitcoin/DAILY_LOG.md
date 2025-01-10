@@ -2,7 +2,27 @@
 
 ## January 2025
 
-### [Day 11: Lightning Network](Day11_lightning_network/) - 2025-01-06
+### [Day 12: Taproot Implementation](Day12_taproot/) - 2025-01-06
+
+#### Overview
+Implemented Bitcoin's Taproot functionality including key path and script path spending.
+
+#### Features Implemented
+- Taproot address generation
+- Script tree construction
+- MAST implementation
+- Schnorr signatures
+- Key and script path spending
+
+#### Technical Details
+- Public key tweaking
+- Script tree creation
+- Control block generation
+- Transaction signing
+
+---
+
+### [Day 11: Lightning Network](Day11_lightning_network/) - 2025-01-05
 
 #### Overview
 Implemented basic Lightning Network functionality including payment channels and HTLCs.
@@ -21,7 +41,7 @@ Implemented basic Lightning Network functionality including payment channels and
 
 ---
 
-### [Day 10: UTXO Management & Multisignature](Day10_utxo_multisig/) - 2025-01-05
+### [Day 10: UTXO Management & Multisignature](Day10_utxo_multisig/) - 2025-01-04
 
 #### Overview
 Implemented advanced UTXO management and multisignature transactions.
@@ -40,7 +60,7 @@ Implemented advanced UTXO management and multisignature transactions.
 
 ---
 
-### [Day 9: Fee Estimation](Day9_fee_estimation/) - 2025-01-04
+### [Day 9: Fee Estimation](Day9_fee_estimation/) - 2025-01-03
 
 #### Overview
 Implemented Bitcoin transaction fee estimation system.
@@ -59,7 +79,7 @@ Implemented Bitcoin transaction fee estimation system.
 
 ---
 
-### [Day 8: P2PKH Script](Day8_p2pkh_script/) - 2025-01-03
+### [Day 8: P2PKH Script](Day8_p2pkh_script/) - 2025-01-02
 
 #### Overview
 Implemented Pay-to-Public-Key-Hash (P2PKH) script system.
@@ -78,7 +98,7 @@ Implemented Pay-to-Public-Key-Hash (P2PKH) script system.
 
 ---
 
-### [Day 7: Script Interpreter](Day7_script_interpreter/) - 2025-01-02
+### [Day 7: Script Interpreter](Day7_script_interpreter/) - 2025-01-01
 
 #### Overview
 Implemented Bitcoin Script interpreter for transaction validation.
@@ -97,7 +117,7 @@ Implemented Bitcoin Script interpreter for transaction validation.
 
 ---
 
-### [Day 6: Merkle Tree](Day6_merkle_tree/) - 2025-01-01
+### [Day 6: Merkle Tree](Day6_merkle_tree/) - 2024-12-31
 
 #### Overview
 Implemented Merkle Tree for efficient transaction verification.
@@ -116,7 +136,7 @@ Implemented Merkle Tree for efficient transaction verification.
 
 ---
 
-### [Day 5: Simple Blockchain](Day5_simple_blockchain/) - 2024-12-31
+### [Day 5: Simple Blockchain](Day5_simple_blockchain/) - 2024-12-30
 
 #### Overview
 Implemented basic blockchain structure and mining.
@@ -135,7 +155,7 @@ Implemented basic blockchain structure and mining.
 
 ---
 
-### [Day 4: Block Explorer](Day4_block_explorer/) - 2024-12-30
+### [Day 4: Block Explorer](Day4_block_explorer/) - 2024-12-29
 
 #### Overview
 Implemented Bitcoin block explorer functionality.
@@ -154,7 +174,7 @@ Implemented Bitcoin block explorer functionality.
 
 ---
 
-### [Day 3: Address Generator](Day3_bitcoin_address_generator/) - 2024-12-29
+### [Day 3: Address Generator](Day3_bitcoin_address_generator/) - 2024-12-28
 
 #### Overview
 Implemented comprehensive Bitcoin address generation system.
@@ -173,7 +193,7 @@ Implemented comprehensive Bitcoin address generation system.
 
 ---
 
-### [Day 2: Bitcoin Broadcaster](Day2_bitcoin_broadcaster/) - 2024-12-28
+### [Day 2: Bitcoin Broadcaster](Day2_bitcoin_broadcaster/) - 2024-12-27
 
 #### Overview
 Implemented Bitcoin transaction broadcasting system.
@@ -192,7 +212,7 @@ Implemented Bitcoin transaction broadcasting system.
 
 ---
 
-### [Day 1: Bitcoin Analysis](Day1_bitcoin_analysis/) - 2024-12-27
+### [Day 1: Bitcoin Analysis](Day1_bitcoin_analysis/) - 2024-12-26
 
 #### Overview
 Implemented Bitcoin transaction and blockchain analysis tools.
