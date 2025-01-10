@@ -5,7 +5,7 @@ const { BIP32Factory } = require('bip32');
 const bip32 = BIP32Factory(ecc);
 
 class BitcoinAddressGenerator {
-    constructor(network = 'testnet') {
+    constructor(network = 'mainnet') {
         this.network = network === 'testnet' ? bitcoin.networks.testnet : bitcoin.networks.bitcoin;
     }
 
@@ -94,7 +94,7 @@ class BitcoinAddressGenerator {
 
 // Example usage
 async function main() {
-    const generator = new BitcoinAddressGenerator('testnet');
+    const generator = new BitcoinAddressGenerator('mainnet');
     
     // Generate new wallet with mnemonic
     const mnemonic = generator.generateMnemonic();
