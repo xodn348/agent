@@ -1,119 +1,44 @@
 from qiskit import QuantumCircuit
 from qiskit_aer import Aer
 from qiskit.visualization import plot_histogram
-import numpy as np
+from qiskit.compiler import transpile
+import matplotlib.pyplot as plt
 
-class QuantumBasics:
-    def __init__(self):
-        self.simulator = Aer.get_backend('qasm_simulator')
+def demonstrate_quantum_gates():
+    # Create a quantum circuit with 2 qubits and 2 classical bits
+    qc = QuantumCircuit(2, 2)   # Both qubits start in |0⟩ state
 
-    def create_bell_state(self):
-        """Create a Bell state (maximally entangled state)"""
-        # Create circuit with 2 qubits and 2 classical bits
-        qc = QuantumCircuit(2, 2)
+    # Apply basic gates
+    qc.h(0)    # Hadamard gate on qubit 0
+    qc.x(1)    # NOT gate (X gate) on qubit 1
+    qc.cx(0,1) # CNOT gate with control qubit 0 and target qubit 1
+    
+    # Measure qubits
+    qc.measure([0,1], [0,1])
 
-        # Create superposition with Hadamard gate
-        qc.h(0)
-        # Entangle qubits with CNOT gate
-        qc.cx(0, 1)
-        # Measure both qubits
-        qc.measure([0,1], [0,1])
+    # Execute the circuit on a simulator
+    simulator = Aer.get_backend('qasm_simulator')
+    # Transpile for the backend
+    qc_compiled = transpile(qc, simulator)
+    # Run and get results
+    job = simulator.run(qc_compiled, shots=1000)
+    result = job.result()
 
-        print('Bell State Circuit:')
-        print(qc)
+    # Get the counts of measurement outcomes
+    counts = result.get_counts(qc)
+    print("\nCircuit Results:")
+    print("===============")
+    for state, count in counts.items():
+        print(f"State |{state}>: {count} shots")
 
-        # Execute using backend directly
-        job = self.simulator.run(qc, shots=1000)
-        result = job.result()
-        counts = result.get_counts(qc)
+    # Draw the circuit
+    print("\nQuantum Circuit:")
+    print("===============")
+    print(qc)
 
-        print('\nMeasurement Results:')
-        print(counts)
-        return qc, counts
+    # Plot the histogram
+    fig = plot_histogram(counts)
+    plt.show()
 
-    def quantum_superposition(self):
-        """Demonstrate quantum superposition"""
-        qc = QuantumCircuit(1, 1)
-        
-        # Create superposition
-        qc.h(0)
-        qc.measure(0, 0)
-
-        print('\nSuperposition Circuit:')
-        print(qc)
-
-        # Execute using backend directly
-        job = self.simulator.run(qc, shots=1000)
-        result = job.result()
-        counts = result.get_counts(qc)
-
-        print('\nMeasurement Results:')
-        print(counts)
-        return qc, counts
-
-    def quantum_rotation(self, angle):
-        """Demonstrate rotation gates"""
-        qc = QuantumCircuit(1, 1)
-        
-        # Apply rotation around X-axis
-        qc.rx(angle, 0)
-        qc.measure(0, 0)
-
-        print(f'\nRotation Circuit (angle: {angle:.2f}):')
-        print(qc)
-
-        # Execute using backend directly
-        job = self.simulator.run(qc, shots=1000)
-        result = job.result()
-        counts = result.get_counts(qc)
-
-        print('\nMeasurement Results:')
-        print(counts)
-        return qc, counts
-
-    def basic_gates_demo(self):
-        """Demonstrate basic quantum gates"""
-        qc = QuantumCircuit(3, 3)
-
-        # X gate (NOT gate)
-        qc.x(0)
-        # Hadamard gate
-        qc.h(1)
-        # CNOT gate
-        qc.cx(1, 2)
-        # Measure all qubits
-        qc.measure([0,1,2], [0,1,2])
-
-        print('\nBasic Gates Circuit:')
-        print(qc)
-
-        # Execute using backend directly
-        job = self.simulator.run(qc, shots=1000)
-        result = job.result()
-        counts = result.get_counts(qc)
-
-        print('\nMeasurement Results:')
-        print(counts)
-        return qc, counts
-
-def main():
-    qb = QuantumBasics()
-
-    # 1. Create Bell State
-    print('\n=== Bell State Example ===')
-    qb.create_bell_state()
-
-    # 2. Demonstrate Superposition
-    print('\n=== Superposition Example ===')
-    qb.quantum_superposition()
-
-    # 3. Demonstrate Rotation
-    print('\n=== Rotation Example ===')
-    qb.quantum_rotation(np.pi/4)
-
-    # 4. Demonstrate Basic Gates
-    print('\n=== Basic Gates Example ===')
-    qb.basic_gates_demo()
-
-if __name__ == '__main__':
-    main()
+if __name__ == "__main__":
+    demonstrate_quantum_gates()

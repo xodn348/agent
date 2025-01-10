@@ -33,7 +33,7 @@ pip install qiskit matplotlib numpy
 
 ## Usage
 
-```python
+```python3 quantum_circuits.py
 from quantum_circuits import QuantumCircuitBasics
 
 # Create instance
