@@ -1,138 +1,146 @@
 const axios = require('axios');
 
 class BitcoinBlockExplorer {
-    constructor(network = 'testnet') {
-        this.baseUrl = network === 'testnet' 
-            ? 'https://blockstream.info/testnet/api'
-            : 'https://blockstream.info/api';
+    constructor(network = 'mainnet') {
+        this.baseUrl = network === 'mainnet' 
+            ? 'https://blockstream.info/api'
+            : 'https://blockstream.info/testnet/api';
     }
 
-    async getLatestBlock() {
+    async getLatestBlockHeight() {
         try {
             const response = await axios.get(`${this.baseUrl}/blocks/tip/height`);
             return response.data;
         } catch (error) {
-            throw new Error(`Error fetching latest block: ${error.message}`);
+            throw new Error(`Error fetching latest block height: ${error.message}`);
         }
     }
 
-    async getBlockByHeight(height) {
+    async getBlock(height) {
         try {
             const response = await axios.get(`${this.baseUrl}/block-height/${height}`);
             const blockHash = response.data;
-            return this.getBlockByHash(blockHash);
+            const blockResponse = await axios.get(`${this.baseUrl}/block/${blockHash}`);
+            return blockResponse.data;
         } catch (error) {
-            throw new Error(`Error fetching block at height ${height}: ${error.message}`);
+            throw new Error(`Error fetching block: ${error.message}`);
         }
     }
 
-    async getBlockByHash(hash) {
+    async getBlockTransactions(blockHash) {
         try {
-            const response = await axios.get(`${this.baseUrl}/block/${hash}`);
+            const response = await axios.get(`${this.baseUrl}/block/${blockHash}/txs`);
             return response.data;
         } catch (error) {
-            throw new Error(`Error fetching block ${hash}: ${error.message}`);
+            throw new Error(`Error fetching block transactions: ${error.message}`);
         }
     }
 
-    async getTransaction(txid) {
-        try {
-            const response = await axios.get(`${this.baseUrl}/tx/${txid}`);
-            return response.data;
-        } catch (error) {
-            throw new Error(`Error fetching transaction ${txid}: ${error.message}`);
-        }
+    async getMiningInfo(block) {
+        const difficulty = parseInt(block.bits, 16);
+        const hashrate = difficulty * Math.pow(2, 32) / 600; // 600 seconds per block on average
+        return {
+            difficulty,
+            hashrate,
+            hashrateReadable: this.formatHashrate(hashrate)
+        };
     }
 
-    async getTransactionHex(txid) {
-        try {
-            const response = await axios.get(`${this.baseUrl}/tx/${txid}/hex`);
-            return response.data;
-        } catch (error) {
-            throw new Error(`Error fetching transaction hex ${txid}: ${error.message}`);
+    formatHashrate(hashrate) {
+        const units = ['H/s', 'KH/s', 'MH/s', 'GH/s', 'TH/s', 'PH/s', 'EH/s'];
+        let unitIndex = 0;
+        while (hashrate >= 1000 && unitIndex < units.length - 1) {
+            hashrate /= 1000;
+            unitIndex++;
         }
-    }
-
-    async getBlockTransactions(hash) {
-        try {
-            const response = await axios.get(`${this.baseUrl}/block/${hash}/txids`);
-            return response.data;
-        } catch (error) {
-            throw new Error(`Error fetching block transactions ${hash}: ${error.message}`);
-        }
+        return `${hashrate.toFixed(2)} ${units[unitIndex]}`;
     }
 
     async analyzeBlock(height) {
         try {
-            const blockHash = await this.getBlockByHeight(height);
-            const block = await this.getBlockByHash(blockHash);
-            const transactions = await this.getBlockTransactions(blockHash);
-            const coinbaseTx = await this.getTransaction(transactions[0]);
+            const block = await this.getBlock(height);
+            const transactions = await this.getBlockTransactions(block.id);
+            const miningInfo = await this.getMiningInfo(block);
+            
+            console.log('\nBlock Analysis:');
+            console.log('========================================');
+            console.log(`Height: ${block.height}`);
+            console.log(`Hash: ${block.id}`);
+            console.log(`Previous Block: ${block.previousblockhash}`);
+            console.log(`Timestamp: ${new Date(block.timestamp * 1000).toUTCString()}`);
+            
+            console.log('\nBlock Statistics:');
+            console.log('========================================');
+            console.log(`Size: ${(block.size / 1024 / 1024).toFixed(2)} MB`);
+            console.log(`Weight: ${(block.weight / 1024 / 1024).toFixed(2)} MWU`);
+            console.log(`Transaction Count: ${block.tx_count}`);
+            
+            console.log('\nMining Information:');
+            console.log('========================================');
+            console.log(`Version: ${block.version.toString(16)} (hex)`);
+            console.log(`Merkle Root: ${block.merkle_root}`);
+            console.log(`Difficulty: ${miningInfo.difficulty.toExponential(2)}`);
+            console.log(`Estimated Hashrate: ${miningInfo.hashrateReadable}`);
+            console.log(`Nonce: ${block.nonce}`);
+            console.log(`Bits: ${block.bits}`);
 
-            const blockAnalysis = {
-                height: block.height,
-                hash: block.id,
-                timestamp: new Date(block.timestamp * 1000).toISOString(),
-                transactionCount: block.tx_count,
-                size: block.size,
-                weight: block.weight,
-                version: block.version,
-                merkleRoot: block.merkle_root,
-                bits: block.bits,
-                nonce: block.nonce,
-                coinbaseValue: coinbaseTx.vout.reduce((acc, output) => acc + output.value, 0),
-                totalTransactions: transactions.length,
+            if (transactions.length > 0) {
+                console.log('\nTransaction Summary:');
+                console.log('========================================');
+                let totalValue = 0;
+                let totalFees = 0;
+
+                transactions.forEach((tx, index) => {
+                    if (index < 5) { // Show first 5 transactions
+                        console.log(`\nTransaction #${index + 1}:`);
+                        console.log(`TXID: ${tx.txid}`);
+                        console.log(`Size: ${tx.size} bytes`);
+                        console.log(`Fee: ${tx.fee / 100000000} BTC`);
+                        
+                        // Calculate total value transferred
+                        const txValue = tx.vout.reduce((sum, output) => sum + output.value, 0);
+                        console.log(`Value: ${txValue / 100000000} BTC`);
+                        
+                        totalValue += txValue;
+                        totalFees += tx.fee;
+                    }
+                });
+
+                console.log('\nBlock Totals:');
+                console.log('========================================');
+                console.log(`Total Transactions: ${transactions.length}`);
+                console.log(`Total Value: ${(totalValue / 100000000).toFixed(8)} BTC`);
+                console.log(`Total Fees: ${(totalFees / 100000000).toFixed(8)} BTC`);
+                console.log(`Average Fee: ${((totalFees / transactions.length) / 100000000).toFixed(8)} BTC`);
+            }
+
+            return {
+                block,
+                transactions,
+                miningInfo
             };
-
-            return blockAnalysis;
         } catch (error) {
             throw new Error(`Error analyzing block: ${error.message}`);
-        }
-    }
-
-    formatBytes(bytes) {
-        if (bytes === 0) return '0 Bytes';
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-    }
-
-    async displayBlockInfo(height) {
-        try {
-            const analysis = await this.analyzeBlock(height);
-            console.log('\nBlock Information:');
-            console.log('==================');
-            console.log(`Height: ${analysis.height}`);
-            console.log(`Hash: ${analysis.hash}`);
-            console.log(`Timestamp: ${analysis.timestamp}`);
-            console.log(`Transaction Count: ${analysis.transactionCount}`);
-            console.log(`Size: ${this.formatBytes(analysis.size)}`);
-            console.log(`Weight: ${analysis.weight}`);
-            console.log(`Version: ${analysis.version}`);
-            console.log(`Merkle Root: ${analysis.merkleRoot}`);
-            console.log(`Bits: ${analysis.bits}`);
-            console.log(`Nonce: ${analysis.nonce}`);
-            console.log(`Coinbase Value: ${analysis.coinbaseValue / 100000000} BTC`);
-            return analysis;
-        } catch (error) {
-            console.error('Error:', error.message);
         }
     }
 }
 
 async function main() {
-    const explorer = new BitcoinBlockExplorer('testnet');
-    
     try {
-        const latestHeight = await explorer.getLatestBlock();
-        console.log(`Latest block height: ${latestHeight}`);
+        const explorer = new BitcoinBlockExplorer('mainnet');
 
+        // Get latest block height
+        const latestHeight = await explorer.getLatestBlockHeight();
+        console.log('Latest block height:', latestHeight);
+
+        // Analyze latest block
         console.log('\nAnalyzing latest block...');
-        await explorer.displayBlockInfo(latestHeight);
+        await explorer.analyzeBlock(latestHeight);
 
+        // Analyze genesis block
         console.log('\nAnalyzing genesis block...');
-        await explorer.displayBlockInfo(0);
+        await explorer.analyzeBlock(0);
+
     } catch (error) {
         console.error('Error:', error.message);
     }
