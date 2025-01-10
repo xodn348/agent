@@ -2,29 +2,48 @@
 
 ## January 2025
 
-### [Day 5: Quantum Error Correction](Day5_error_correction/) - 2025-01-06
+### [Day 6: Quantum Optimization](Day6_quantum_optimization/) - 2025-01-06
 
 #### Overview
-Implemented quantum error correction techniques and circuits.
+Implemented quantum optimization algorithms using QAOA.
+
+#### Features Implemented
+- MaxCut problem solver
+- Traveling Salesman Problem (TSP)
+- Vertex Cover optimization
+- QAOA implementations
+
+#### Technical Details
+- Custom QAOA circuits
+- Parameter optimization
+- Problem encoding
+- Solution decoding
+
+---
+
+### [Day 5: Quantum Error Correction](Day5_error_correction/) - 2025-01-05
+
+#### Overview
+Implemented quantum error correction codes and techniques.
 
 #### Features Implemented
 - Bit-flip code
 - Phase-flip code
 - Shor code
-- Steane code
+- Error detection
 
 #### Technical Details
-- Error detection
 - Syndrome measurement
+- Error correction
+- Circuit verification
 - Quantum redundancy
-- Error recovery
 
 ---
 
-### [Day 4: Quantum Algorithms](Day4_quantum_algorithms/) - 2025-01-05
+### [Day 4: Quantum Algorithms](Day4_quantum_algorithms/) - 2025-01-04
 
 #### Overview
-Implemented core quantum algorithms using Qiskit.
+Implemented fundamental quantum algorithms.
 
 #### Features Implemented
 - Deutsch-Jozsa Algorithm
@@ -36,11 +55,11 @@ Implemented core quantum algorithms using Qiskit.
 - Oracle implementation
 - Amplitude amplification
 - Phase estimation
-- Quantum parallelism
+- Circuit optimization
 
 ---
 
-### [Day 3: Quantum Algorithms](Day3_quantum_algorithms/) - 2025-01-04
+### [Day 3: Quantum Algorithms](Day3_quantum_algorithms/) - 2025-01-03
 
 #### Overview
 Advanced quantum circuit implementations.
@@ -52,17 +71,17 @@ Advanced quantum circuit implementations.
 - Amplitude estimation
 
 #### Technical Details
-- Complex circuit construction
+- Complex circuits
 - State preparation
-- Quantum measurements
+- Measurement techniques
 - Result analysis
 
 ---
 
-### [Day 2: Quantum Circuits](Day2_quantum_circuits/) - 2025-01-03
+### [Day 2: Quantum Circuits](Day2_quantum_circuits/) - 2025-01-02
 
 #### Overview
-Basic quantum circuit building and manipulation.
+Basic quantum circuit implementation and manipulation.
 
 #### Features Implemented
 - Bell states
@@ -78,7 +97,7 @@ Basic quantum circuit building and manipulation.
 
 ---
 
-### [Day 1: Quantum Basics](Day1_quantum_basics/) - 2025-01-02
+### [Day 1: Quantum Basics](Day1_quantum_basics/) - 2025-01-01
 
 #### Overview
 Fundamental quantum computing concepts and operations.
