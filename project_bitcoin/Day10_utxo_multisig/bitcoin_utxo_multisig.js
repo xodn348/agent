@@ -1,203 +1,91 @@
 const bitcoin = require('bitcoinjs-lib');
-const axios = require('axios');
+const ECPair = require('ecpair').ECPairFactory(require('tiny-secp256k1'));
 
-class BitcoinUTXOMultisig {
-    constructor(network = 'testnet') {
-        this.network = network === 'testnet' ? bitcoin.networks.testnet : bitcoin.networks.bitcoin;
-        this.baseUrl = network === 'testnet' 
-            ? 'https://blockstream.info/testnet/api'
-            : 'https://blockstream.info/api';
+class BitcoinMultisigWallet {
+    constructor(network = 'mainnet') {
+        this.network = network === 'mainnet' ? bitcoin.networks.bitcoin : bitcoin.networks.testnet;
     }
 
-    async getAddressUTXOs(address) {
-        try {
-            const response = await axios.get(`${this.baseUrl}/address/${address}/utxo`);
-            return response.data;
-        } catch (error) {
-            throw new Error(`Error fetching UTXOs: ${error.message}`);
-        }
+    generateKeyPair() {
+        return ECPair.makeRandom({ network: this.network });
     }
 
-    async createMultisigAddress(publicKeys, m) {
+    createMultisigAddress(publicKeys, m) {
         try {
-            const pubkeys = publicKeys.map(hex => Buffer.from(hex, 'hex'));
-            
-            // Create P2MS output script
-            const multisig = bitcoin.payments.p2ms({
-                m,
-                pubkeys,
+            // Convert public key buffers to ECPair public points
+            const pubkeys = publicKeys.map(pub => {
+                return ECPair.fromPublicKey(pub, { network: this.network }).publicKey;
+            });
+
+            // Create P2MS (multisig) output script
+            const p2ms = bitcoin.payments.p2ms({
+                m: m,
+                pubkeys: pubkeys,
                 network: this.network
             });
 
             // Wrap in P2SH
             const p2sh = bitcoin.payments.p2sh({
-                redeem: multisig,
+                redeem: p2ms,
                 network: this.network
             });
 
             return {
                 address: p2sh.address,
-                redeemScript: p2sh.redeem.output.toString('hex'),
-                witnessScript: p2sh.redeem.output.toString('hex')
+                redeemScript: p2ms.output.toString('hex'),
+                scriptPubKey: p2sh.output.toString('hex')
             };
         } catch (error) {
             throw new Error(`Error creating multisig address: ${error.message}`);
         }
     }
 
-    async createMultisigTransaction(utxos, outputs, redeemScript, privateKeys) {
+    async demonstrateMultisig() {
         try {
-            const psbt = new bitcoin.Psbt({ network: this.network });
+            // Generate three key pairs
+            const keyPair1 = this.generateKeyPair();
+            const keyPair2 = this.generateKeyPair();
+            const keyPair3 = this.generateKeyPair();
 
-            // Add inputs
-            for (const utxo of utxos) {
-                psbt.addInput({
-                    hash: utxo.txid,
-                    index: utxo.vout,
-                    witnessScript: Buffer.from(redeemScript, 'hex'),
-                    redeemScript: Buffer.from(redeemScript, 'hex'),
-                    nonWitnessUtxo: await this.getTransactionHex(utxo.txid)
-                });
-            }
+            console.log('\nGenerated Key Pairs:');
+            console.log('===================');
+            console.log('Key Pair 1:');
+            console.log('Private Key:', keyPair1.toWIF());
+            console.log('Public Key:', keyPair1.publicKey.toString('hex'));
+            console.log('\nKey Pair 2:');
+            console.log('Private Key:', keyPair2.toWIF());
+            console.log('Public Key:', keyPair2.publicKey.toString('hex'));
+            console.log('\nKey Pair 3:');
+            console.log('Private Key:', keyPair3.toWIF());
+            console.log('Public Key:', keyPair3.publicKey.toString('hex'));
 
-            // Add outputs
-            for (const output of outputs) {
-                psbt.addOutput({
-                    address: output.address,
-                    value: output.value
-                });
-            }
-
-            // Sign with provided private keys
-            privateKeys.forEach(wif => {
-                const keyPair = bitcoin.ECPair.fromWIF(wif, this.network);
-                psbt.signAllInputs(keyPair);
-            });
-
-            // Finalize and build
-            psbt.finalizeAllInputs();
-            const tx = psbt.extractTransaction();
-
-            return {
-                txHex: tx.toHex(),
-                txId: tx.getId()
-            };
-        } catch (error) {
-            throw new Error(`Error creating multisig transaction: ${error.message}`);
-        }
-    }
-
-    async getTransactionHex(txid) {
-        try {
-            const response = await axios.get(`${this.baseUrl}/tx/${txid}/hex`);
-            return Buffer.from(response.data, 'hex');
-        } catch (error) {
-            throw new Error(`Error fetching transaction hex: ${error.message}`);
-        }
-    }
-
-    async broadcastTransaction(txHex) {
-        try {
-            const response = await axios.post(
-                `${this.baseUrl}/tx`,
-                txHex,
-                {
-                    headers: { 'Content-Type': 'text/plain' }
-                }
+            // Create 2-of-3 multisig
+            const multisigAddress = this.createMultisigAddress(
+                [keyPair1.publicKey, keyPair2.publicKey, keyPair3.publicKey],
+                2 // m (required signatures)
             );
-            return response.data; // txid
-        } catch (error) {
-            throw new Error(`Error broadcasting transaction: ${error.message}`);
-        }
-    }
 
-    async selectOptimalUTXOs(address, targetAmount) {
-        try {
-            const utxos = await this.getAddressUTXOs(address);
-            
-            // Sort UTXOs by value
-            utxos.sort((a, b) => b.value - a.value);
-
-            let selectedUtxos = [];
-            let totalValue = 0;
-
-            // Simple selection strategy - could be improved
-            for (const utxo of utxos) {
-                selectedUtxos.push(utxo);
-                totalValue += utxo.value;
-
-                if (totalValue >= targetAmount) {
-                    break;
-                }
-            }
-
-            if (totalValue < targetAmount) {
-                throw new Error('Insufficient funds');
-            }
+            console.log('\nMultisig Address Details:');
+            console.log('===================');
+            console.log('Address:', multisigAddress.address);
+            console.log('Redeem Script:', multisigAddress.redeemScript);
+            console.log('ScriptPubKey:', multisigAddress.scriptPubKey);
 
             return {
-                utxos: selectedUtxos,
-                total: totalValue,
-                change: totalValue - targetAmount
+                keyPairs: [keyPair1, keyPair2, keyPair3],
+                multisigAddress
             };
         } catch (error) {
-            throw new Error(`Error selecting UTXOs: ${error.message}`);
-        }
-    }
-
-    estimateMultisigSize(inputCount, outputCount, m, n) {
-        // Rough size estimation for P2SH multisig
-        const baseSize = 10; // Version + locktime
-        const inputSize = 180 + (73 * m); // Base input size + signatures
-        const outputSize = 34; // P2PKH output
-
-        return baseSize + (inputSize * inputCount) + (outputSize * outputCount);
-    }
-
-    async displayUTXOSet(address) {
-        try {
-            const utxos = await this.getAddressUTXOs(address);
-            
-            console.log('\nUTXO Set for Address:', address);
-            console.log('==========================');
-            
-            let total = 0;
-            utxos.forEach((utxo, index) => {
-                console.log(`\nUTXO #${index + 1}:`);
-                console.log(`TXID: ${utxo.txid}`);
-                console.log(`Output Index: ${utxo.vout}`);
-                console.log(`Amount: ${utxo.value} satoshis`);
-                total += utxo.value;
-            });
-
-            console.log('\nTotal Balance:', total, 'satoshis');
-            console.log('            ', total / 100000000, 'BTC');
-
-            return utxos;
-        } catch (error) {
-            console.error('Error:', error.message);
+            console.error('Multisig demonstration failed:', error.message);
+            throw error;
         }
     }
 }
 
-// Example usage
 async function main() {
-    const manager = new BitcoinUTXOMultisig('testnet');
-
     try {
-        // Create 2-of-3 multisig
-        const publicKeys = [
-            'public_key_1',
-            'public_key_2',
-            'public_key_3'
-        ];
-        
-        const multisigAddress = await manager.createMultisigAddress(publicKeys, 2);
-        console.log('\nMultisig Address:', multisigAddress);
-
-        // Display UTXOs
-        await manager.displayUTXOSet(multisigAddress.address);
-
+        const wallet = new BitcoinMultisigWallet('mainnet');
+        await wallet.demonstrateMultisig();
     } catch (error) {
         console.error('Error:', error.message);
     }
@@ -207,4 +95,4 @@ if (require.main === module) {
     main().catch(console.error);
 }
 
-module.exports = BitcoinUTXOMultisig;
+module.exports = BitcoinMultisigWallet;

@@ -1,149 +1,124 @@
 const bitcoin = require('bitcoinjs-lib');
+const ECPair = require('ecpair').ECPairFactory(require('tiny-secp256k1'));
 const crypto = require('crypto');
 
 class P2PKHScript {
-    constructor(network = 'testnet') {
-        this.network = network === 'testnet' ? bitcoin.networks.testnet : bitcoin.networks.bitcoin;
+    constructor(network = 'mainnet') {
+        this.network = network === 'mainnet' ? bitcoin.networks.bitcoin : bitcoin.networks.testnet;
     }
 
-    // Generate key pair
     generateKeyPair() {
-        const keyPair = bitcoin.ECPair.makeRandom({ network: this.network });
-        return {
-            privateKey: keyPair.toWIF(),
-            publicKey: keyPair.publicKey.toString('hex'),
-            keyPair: keyPair
-        };
-    }
-
-    // Create P2PKH address
-    createP2PKHAddress(publicKey) {
-        const pubKeyHash = bitcoin.crypto.hash160(Buffer.from(publicKey, 'hex'));
-        const payment = bitcoin.payments.p2pkh({
-            hash: pubKeyHash,
-            network: this.network
-        });
-        return payment.address;
-    }
-
-    // Create locking script (scriptPubKey)
-    createLockingScript(address) {
-        const payment = bitcoin.payments.p2pkh({
-            address: address,
-            network: this.network
-        });
-        return {
-            script: payment.output.toString('hex'),
-            assembly: this.decodeScript(payment.output)
-        };
-    }
-
-    // Create unlocking script (scriptSig)
-    createUnlockingScript(message, keyPair) {
-        // Create message hash
-        const messageHash = this.hashMessage(message);
-        
-        // Sign the hash
-        const signature = keyPair.sign(messageHash);
-        const derSignature = bitcoin.script.signature.encode(signature, bitcoin.Transaction.SIGHASH_ALL);
-
-        // Create unlocking script
-        const scriptSig = bitcoin.script.compile([
-            derSignature,
-            keyPair.publicKey
-        ]);
-
-        return {
-            script: scriptSig.toString('hex'),
-            assembly: this.decodeScript(scriptSig)
-        };
-    }
-
-    // Verify P2PKH transaction
-    verifyTransaction(unlockingScript, lockingScript, message) {
         try {
-            // Combine scripts
-            const combinedScript = Buffer.concat([
-                Buffer.from(unlockingScript, 'hex'),
-                Buffer.from(lockingScript, 'hex')
-            ]);
+            const keyPair = ECPair.makeRandom({ network: this.network });
+            const { address } = bitcoin.payments.p2pkh({ 
+                pubkey: keyPair.publicKey,
+                network: this.network 
+            });
 
-            // Execute script
-            bitcoin.script.execute(combinedScript, this.hashMessage(message));
-            return true;
+            return {
+                privateKey: keyPair.toWIF(),
+                publicKey: keyPair.publicKey,
+                address: address
+            };
         } catch (error) {
-            console.error('Verification failed:', error.message);
+            console.error('Error generating key pair:', error);
+            throw error;
+        }
+    }
+
+    createP2PKHScript(publicKey) {
+        try {
+            // Create a proper P2PKH script without signature
+            return bitcoin.script.compile([
+                bitcoin.opcodes.OP_DUP,
+                bitcoin.opcodes.OP_HASH160,
+                bitcoin.crypto.hash160(publicKey),
+                bitcoin.opcodes.OP_EQUALVERIFY,
+                bitcoin.opcodes.OP_CHECKSIG
+            ]);
+        } catch (error) {
+            console.error('Error creating P2PKH script:', error);
+            throw error;
+        }
+    }
+
+    signMessage(privateKeyWIF, message) {
+        try {
+            const keyPair = ECPair.fromWIF(privateKeyWIF, this.network);
+            const messageHash = crypto.createHash('sha256').update(message).digest();
+            return keyPair.sign(messageHash);
+        } catch (error) {
+            console.error('Error signing message:', error);
+            throw error;
+        }
+    }
+
+    verifySignature(publicKey, message, signature) {
+        try {
+            const messageHash = crypto.createHash('sha256').update(message).digest();
+            return ECPair.fromPublicKey(publicKey).verify(messageHash, signature);
+        } catch (error) {
+            console.error('Error verifying signature:', error);
             return false;
         }
     }
 
-    // Helper: Hash message
-    hashMessage(message) {
-        return bitcoin.crypto.sha256(Buffer.from(message));
-    }
-
-    // Helper: Decode script to assembly
-    decodeScript(script) {
+    async demonstrateP2PKH() {
         try {
-            return bitcoin.script.toASM(script);
+            // Generate new key pair
+            const wallet = this.generateKeyPair();
+            console.log('\nWallet Generated:');
+            console.log('==================');
+            console.log('Private Key (WIF):', wallet.privateKey);
+            console.log('Public Key:', wallet.publicKey.toString('hex'));
+            console.log('Address:', wallet.address);
+
+            // Sign a message
+            const message = 'Hello, Bitcoin!';
+            const signature = this.signMessage(wallet.privateKey, message);
+            console.log('\nMessage Signing:');
+            console.log('==================');
+            console.log('Message:', message);
+            console.log('Signature:', signature.toString('hex'));
+
+            // Verify signature
+            const isValid = this.verifySignature(wallet.publicKey, message, signature);
+            console.log('\nSignature Verification:');
+            console.log('==================');
+            console.log('Signature is valid:', isValid);
+
+            // Create P2PKH script
+            const script = this.createP2PKHScript(wallet.publicKey);
+            console.log('\nP2PKH Script:');
+            console.log('==================');
+            console.log('Script (hex):', script.toString('hex'));
+            console.log('Script (ASM):', bitcoin.script.toASM(script));
+
+            return {
+                wallet,
+                message,
+                signature: signature.toString('hex'),
+                script: script.toString('hex'),
+                isValid
+            };
         } catch (error) {
-            return 'Unable to decode script';
+            console.error('P2PKH demonstration failed:', error.message);
+            throw error;
         }
-    }
-
-    // Display full transaction details
-    displayTransactionDetails(keyData, message) {
-        console.log('\nP2PKH Transaction Details:');
-        console.log('=======================');
-
-        // Address details
-        console.log('\nKey Details:');
-        console.log('Private Key (WIF):', keyData.privateKey);
-        console.log('Public Key (hex):', keyData.publicKey);
-
-        // Generate address
-        const address = this.createP2PKHAddress(keyData.publicKey);
-        console.log('\nBitcoin Address:', address);
-
-        // Create scripts
-        const lockingScript = this.createLockingScript(address);
-        const unlockingScript = this.createUnlockingScript(message, keyData.keyPair);
-
-        // Display scripts
-        console.log('\nLocking Script (scriptPubKey):');
-        console.log('Hex:', lockingScript.script);
-        console.log('Assembly:', lockingScript.assembly);
-
-        console.log('\nUnlocking Script (scriptSig):');
-        console.log('Hex:', unlockingScript.script);
-        console.log('Assembly:', unlockingScript.assembly);
-
-        // Verify
-        const isValid = this.verifyTransaction(
-            unlockingScript.script,
-            lockingScript.script,
-            message
-        );
-
-        console.log('\nTransaction Verification:', isValid ? 'Valid' : 'Invalid');
-        return { address, lockingScript, unlockingScript, isValid };
     }
 }
 
-// Example usage
-function main() {
-    const p2pkh = new P2PKHScript('testnet');
-    
-    // Generate new key pair
-    const keyData = p2pkh.generateKeyPair();
-    
-    // Create and verify transaction
-    const message = 'Hello, Bitcoin P2PKH!';
-    const txDetails = p2pkh.displayTransactionDetails(keyData, message);
+async function main() {
+    try {
+        const p2pkh = new P2PKHScript('mainnet');
+        await p2pkh.demonstrateP2PKH();
+    } catch (error) {
+        console.error('Main execution failed:', error);
+    }
 }
 
 if (require.main === module) {
-    main();
+    main().catch(console.error);
 }
 
 module.exports = P2PKHScript;

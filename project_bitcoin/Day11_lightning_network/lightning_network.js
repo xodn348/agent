@@ -1,273 +1,137 @@
 const bitcoin = require('bitcoinjs-lib');
-const crypto = require('crypto');
+const ECPair = require('ecpair').ECPairFactory(require('tiny-secp256k1'));
 
 class LightningNetwork {
-    constructor(network = 'testnet') {
-        this.network = network === 'testnet' ? bitcoin.networks.testnet : bitcoin.networks.bitcoin;
-        this.channels = new Map();
-        this.payments = new Map();
+    constructor(network = 'mainnet') {
+        this.network = network === 'mainnet' ? bitcoin.networks.bitcoin : bitcoin.networks.testnet;
     }
 
-    createPaymentChannel(channelId, fundingAmount, funderPubKey, recipientPubKey) {
-        try {
-            // Create channel structure
-            const channel = {
-                id: channelId,
-                state: 'initialized',
-                fundingTx: null,
-                commitmentTxs: [],
-                balance: {
-                    funder: fundingAmount,
-                    recipient: 0
-                },
-                sequence: 0,
-                htlcs: new Map(),
-                keys: {
-                    funder: funderPubKey,
-                    recipient: recipientPubKey
-                }
-            };
-
-            this.channels.set(channelId, channel);
-            return channel;
-        } catch (error) {
-            throw new Error(`Error creating payment channel: ${error.message}`);
-        }
+    generateNodeKeys() {
+        return ECPair.makeRandom({ network: this.network });
     }
 
-    async createFundingTransaction(channel, fundingAmount) {
+    createFundingTransaction(alicePubkey, bobPubkey, fundingAmount) {
         try {
-            // Create 2-of-2 multisig address
-            const multisigScript = bitcoin.payments.p2ms({
+            // Convert public keys to proper format
+            const pubkeys = [
+                ECPair.fromPublicKey(alicePubkey, { network: this.network }).publicKey,
+                ECPair.fromPublicKey(bobPubkey, { network: this.network }).publicKey
+            ].sort((a, b) => a.compare(b)); // Sort pubkeys for deterministic script
+
+            // Create 2-of-2 multisig script
+            const p2ms = bitcoin.payments.p2ms({
                 m: 2,
-                pubkeys: [Buffer.from(channel.keys.funder, 'hex'), Buffer.from(channel.keys.recipient, 'hex')],
+                pubkeys,
                 network: this.network
             });
 
-            // Wrap in P2WSH
+            // Wrap in P2WSH (native segwit)
             const p2wsh = bitcoin.payments.p2wsh({
-                redeem: multisigScript,
+                redeem: p2ms,
                 network: this.network
             });
 
-            // Create funding transaction
-            const fundingTx = {
+            return {
                 address: p2wsh.address,
-                amount: fundingAmount,
-                redeemScript: multisigScript.output.toString('hex'),
-                witnessScript: multisigScript.output.toString('hex')
+                witnessScript: p2ms.output.toString('hex'),
+                fundingAmount
             };
-
-            channel.fundingTx = fundingTx;
-            channel.state = 'funded';
-
-            return fundingTx;
         } catch (error) {
             throw new Error(`Error creating funding transaction: ${error.message}`);
         }
     }
 
-    createCommitmentTransaction(channel, balanceFunder, balanceRecipient) {
+    createCommitmentTransaction(channelState) {
         try {
-            // Create commitment transaction structure
-            const commitmentTx = {
-                sequence: channel.sequence++,
-                timestamp: Date.now(),
-                balances: {
-                    funder: balanceFunder,
-                    recipient: balanceRecipient
-                },
-                revocationKey: crypto.randomBytes(32).toString('hex'),
-                htlcs: Array.from(channel.htlcs.values())
+            const { alicePubkey, bobPubkey, aliceBalance, bobBalance } = channelState;
+
+            // Create outputs for both parties
+            const aliceOutput = {
+                address: bitcoin.payments.p2wpkh({ 
+                    pubkey: alicePubkey,
+                    network: this.network 
+                }).address,
+                value: aliceBalance
             };
 
-            channel.commitmentTxs.push(commitmentTx);
-            return commitmentTx;
+            const bobOutput = {
+                address: bitcoin.payments.p2wpkh({ 
+                    pubkey: bobPubkey,
+                    network: this.network 
+                }).address,
+                value: bobBalance
+            };
+
+            return {
+                outputs: [aliceOutput, bobOutput],
+                totalAmount: aliceBalance + bobBalance
+            };
         } catch (error) {
             throw new Error(`Error creating commitment transaction: ${error.message}`);
         }
     }
 
-    async createHTLC(channel, amount, preimageHash, timelock) {
+    async demonstrateChannel() {
         try {
-            // Create HTLC structure
-            const htlc = {
-                id: crypto.randomBytes(32).toString('hex'),
-                amount: amount,
-                preimageHash: preimageHash,
-                timelock: timelock,
-                status: 'pending',
-                timestamp: Date.now()
+            // Generate keys for Alice and Bob
+            const alice = this.generateNodeKeys();
+            const bob = this.generateNodeKeys();
+
+            console.log('\nNode Information:');
+            console.log('=================');
+            console.log('Alice:');
+            console.log('Private Key:', alice.toWIF());
+            console.log('Public Key:', alice.publicKey.toString('hex'));
+            console.log('\nBob:');
+            console.log('Private Key:', bob.toWIF());
+            console.log('Public Key:', bob.publicKey.toString('hex'));
+
+            // Create funding transaction (2-of-2 multisig)
+            const fundingTx = this.createFundingTransaction(
+                alice.publicKey,
+                bob.publicKey,
+                1000000 // 0.01 BTC in satoshis
+            );
+
+            console.log('\nFunding Transaction:');
+            console.log('===================');
+            console.log('Multisig Address:', fundingTx.address);
+            console.log('Witness Script:', fundingTx.witnessScript);
+            console.log('Amount:', fundingTx.fundingAmount, 'satoshis');
+
+            // Create initial commitment transaction
+            const channelState = {
+                alicePubkey: alice.publicKey,
+                bobPubkey: bob.publicKey,
+                aliceBalance: 600000, // 0.006 BTC
+                bobBalance: 400000    // 0.004 BTC
             };
 
-            // Add HTLC to channel
-            channel.htlcs.set(htlc.id, htlc);
+            const commitmentTx = this.createCommitmentTransaction(channelState);
 
-            // Update channel balance
-            channel.balance.funder -= amount;
-            channel.balance.recipient += amount;
+            console.log('\nInitial Commitment Transaction:');
+            console.log('============================');
+            console.log('Alice Balance:', channelState.aliceBalance, 'satoshis');
+            console.log('Bob Balance:', channelState.bobBalance, 'satoshis');
+            console.log('Total:', commitmentTx.totalAmount, 'satoshis');
 
-            // Create new commitment transaction
-            this.createCommitmentTransaction(
-                channel,
-                channel.balance.funder,
-                channel.balance.recipient
-            );
-
-            return htlc;
+            return {
+                alice,
+                bob,
+                fundingTx,
+                commitmentTx
+            };
         } catch (error) {
-            throw new Error(`Error creating HTLC: ${error.message}`);
-        }
-    }
-
-    async fulfillHTLC(channel, htlcId, preimage) {
-        try {
-            const htlc = channel.htlcs.get(htlcId);
-            if (!htlc) throw new Error('HTLC not found');
-
-            // Verify preimage
-            const calculatedHash = crypto
-                .createHash('sha256')
-                .update(preimage)
-                .digest('hex');
-
-            if (calculatedHash !== htlc.preimageHash) {
-                throw new Error('Invalid preimage');
-            }
-
-            // Update HTLC status
-            htlc.status = 'fulfilled';
-            htlc.preimage = preimage;
-            htlc.fulfillmentTime = Date.now();
-
-            // Create new commitment transaction
-            this.createCommitmentTransaction(
-                channel,
-                channel.balance.funder,
-                channel.balance.recipient
-            );
-
-            return htlc;
-        } catch (error) {
-            throw new Error(`Error fulfilling HTLC: ${error.message}`);
-        }
-    }
-
-    async closeChannel(channel, cooperative = true) {
-        try {
-            if (cooperative) {
-                // Create cooperative closing transaction
-                const closingTx = {
-                    type: 'cooperative',
-                    timestamp: Date.now(),
-                    finalBalances: {
-                        funder: channel.balance.funder,
-                        recipient: channel.balance.recipient
-                    },
-                    htlcs: Array.from(channel.htlcs.values())
-                };
-
-                channel.state = 'closed';
-                return closingTx;
-            } else {
-                // Create force closing transaction using latest commitment
-                const latestCommitment = channel.commitmentTxs[channel.commitmentTxs.length - 1];
-                const forcedClosingTx = {
-                    type: 'force',
-                    timestamp: Date.now(),
-                    commitmentTx: latestCommitment,
-                    htlcs: Array.from(channel.htlcs.values())
-                };
-
-                channel.state = 'force_closing';
-                return forcedClosingTx;
-            }
-        } catch (error) {
-            throw new Error(`Error closing channel: ${error.message}`);
-        }
-    }
-
-    getChannelState(channelId) {
-        const channel = this.channels.get(channelId);
-        if (!channel) throw new Error('Channel not found');
-
-        return {
-            id: channel.id,
-            state: channel.state,
-            balance: channel.balance,
-            commitmentCount: channel.commitmentTxs.length,
-            htlcCount: channel.htlcs.size,
-            lastUpdate: channel.commitmentTxs[channel.commitmentTxs.length - 1]?.timestamp
-        };
-    }
-
-    displayChannelInfo(channelId) {
-        try {
-            const channel = this.channels.get(channelId);
-            if (!channel) throw new Error('Channel not found');
-
-            console.log('\nChannel Information:');
-            console.log('===================');
-            console.log(`Channel ID: ${channel.id}`);
-            console.log(`State: ${channel.state}`);
-            console.log('\nBalances:');
-            console.log(`Funder: ${channel.balance.funder} satoshis`);
-            console.log(`Recipient: ${channel.balance.recipient} satoshis`);
-            console.log(`\nCommitment Transactions: ${channel.commitmentTxs.length}`);
-            console.log(`Active HTLCs: ${channel.htlcs.size}`);
-
-            if (channel.htlcs.size > 0) {
-                console.log('\nActive HTLCs:');
-                channel.htlcs.forEach((htlc, id) => {
-                    console.log(`\nHTLC ${id.substr(0, 8)}...`);
-                    console.log(`Amount: ${htlc.amount} satoshis`);
-                    console.log(`Status: ${htlc.status}`);
-                    console.log(`Created: ${new Date(htlc.timestamp).toISOString()}`);
-                });
-            }
-
-            return channel;
-        } catch (error) {
-            console.error('Error:', error.message);
+            console.error('Channel demonstration failed:', error.message);
+            throw error;
         }
     }
 }
 
-// Example usage
 async function main() {
-    const ln = new LightningNetwork('testnet');
-
     try {
-        // Create channel
-        const channelId = crypto.randomBytes(32).toString('hex');
-        const funderPubKey = 'funder_public_key';
-        const recipientPubKey = 'recipient_public_key';
-        const fundingAmount = 1000000; // 0.01 BTC in satoshis
-
-        // Create and fund channel
-        const channel = ln.createPaymentChannel(channelId, fundingAmount, funderPubKey, recipientPubKey);
-        await ln.createFundingTransaction(channel, fundingAmount);
-
-        // Create HTLC
-        const preimage = crypto.randomBytes(32);
-        const preimageHash = crypto
-            .createHash('sha256')
-            .update(preimage)
-            .digest('hex');
-
-        const htlc = await ln.createHTLC(channel, 50000, preimageHash, 144); // 144 blocks timelock
-        console.log('Created HTLC:', htlc);
-
-        // Fulfill HTLC
-        await ln.fulfillHTLC(channel, htlc.id, preimage);
-
-        // Display channel info
-        ln.displayChannelInfo(channelId);
-
-        // Close channel
-        const closingTx = await ln.closeChannel(channel, true);
-        console.log('\nChannel closed:', closingTx);
-
+        const ln = new LightningNetwork('mainnet');
+        await ln.demonstrateChannel();
     } catch (error) {
         console.error('Error:', error.message);
     }

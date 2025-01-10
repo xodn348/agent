@@ -1,14 +1,14 @@
 {
   "name": "bitcoin-taproot",
   "version": "1.0.0",
-  "description": "Bitcoin Taproot implementation with script trees",
+  "description": "Bitcoin Taproot Implementation",
   "main": "bitcoin_taproot.js",
   "scripts": {
     "start": "node bitcoin_taproot.js"
   },
   "dependencies": {
-    "bitcoinjs-lib": "^6.1.3",
-    "tiny-secp256k1": "^2.2.3",
-    "ecpair": "^2.1.0"
+    "bitcoinjs-lib": "^6.1.5",
+    "ecpair": "^2.1.0",
+    "tiny-secp256k1": "^2.2.3"
   }
 }

@@ -1,15 +1,16 @@
 const bitcoin = require('bitcoinjs-lib');
-const ecc = require('tiny-secp256k1');
-const { ECPairFactory } = require('ecpair');
-const ECPair = ECPairFactory(ecc);
+const ECPair = require('ecpair').ECPairFactory(require('tiny-secp256k1'));
+const tinysecp = require('tiny-secp256k1');
+
+// Initialize the ECC library
+bitcoin.initEccLib(tinysecp);
 
 class BitcoinTaproot {
-    constructor(network = 'testnet') {
-        this.network = network === 'testnet' ? bitcoin.networks.testnet : bitcoin.networks.bitcoin;
+    constructor(network = 'mainnet') {
+        this.network = network === 'mainnet' ? bitcoin.networks.bitcoin : bitcoin.networks.testnet;
     }
 
-    generateTaprootKeyPair() {
-        // Generate key pair for Taproot
+    generateKeyPair() {
         const keyPair = ECPair.makeRandom({ network: this.network });
         return {
             privateKey: keyPair.toWIF(),
@@ -18,168 +19,61 @@ class BitcoinTaproot {
         };
     }
 
-    createTaprootAddress(publicKey, scriptTree = null) {
+    createTaprootAddress(publicKey) {
         try {
+            // Convert 33-byte public key to 32-byte x-only format
+            const pubKeyXOnly = publicKey.slice(1, 33);
+
             // Create Taproot payment object
-            const taprootPayment = bitcoin.payments.p2tr({
-                pubkey: Buffer.from(publicKey, 'hex'),
-                scriptTree,
+            const p2tr = bitcoin.payments.p2tr({
+                internalPubkey: pubKeyXOnly,
                 network: this.network
             });
 
             return {
-                address: taprootPayment.address,
-                output: taprootPayment.output.toString('hex'),
-                witness: scriptTree ? 'Script path spending enabled' : 'Key path spending only'
+                address: p2tr.address,
+                output: p2tr.output.toString('hex'),
+                version: p2tr.version,
+                type: 'taproot'
             };
         } catch (error) {
             throw new Error(`Error creating Taproot address: ${error.message}`);
         }
     }
 
-    createScriptTree(scripts) {
+    async demonstrateTaproot() {
         try {
-            // Create leaf scripts for Taproot script tree
-            const leaves = scripts.map(script => {
-                return {
-                    script: Buffer.from(script, 'hex'),
-                    version: 0xc0  // Tapscript version
-                };
-            });
+            // Generate key pair
+            const keyPair = this.generateKeyPair();
+            console.log('\nGenerated Key Pair:');
+            console.log('==================');
+            console.log('Private Key:', keyPair.privateKey);
+            console.log('Public Key:', keyPair.publicKey);
 
-            return bitcoin.payments.p2tr.tree.sortScripts(leaves);
-        } catch (error) {
-            throw new Error(`Error creating script tree: ${error.message}`);
-        }
-    }
-
-    createTaprootSpend(utxo, recipient, amount, keyPair, scriptPath = false, script = null) {
-        try {
-            const psbt = new bitcoin.Psbt({ network: this.network });
-
-            // Add input
-            const input = {
-                hash: utxo.txid,
-                index: utxo.vout,
-                witnessUtxo: {
-                    script: Buffer.from(utxo.script, 'hex'),
-                    value: utxo.value
-                }
-            };
-
-            if (scriptPath && script) {
-                // Add script path spending details
-                input.tapLeafScript = [
-                    {
-                        leafVersion: 0xc0,
-                        script: Buffer.from(script, 'hex'),
-                        controlBlock: this.createControlBlock(script)
-                    }
-                ];
-            } else {
-                // Key path spending
-                input.tapInternalKey = keyPair.publicKey;
-            }
-
-            psbt.addInput(input);
-
-            // Add output
-            psbt.addOutput({
-                address: recipient,
-                value: amount
-            });
-
-            // Sign transaction
-            psbt.signInput(0, keyPair);
-            psbt.finalizeAllInputs();
-
-            // Extract transaction
-            const tx = psbt.extractTransaction();
+            // Create Taproot address
+            const taprootAddress = this.createTaprootAddress(keyPair.keyPair.publicKey);
+            console.log('\nTaproot Address Details:');
+            console.log('=======================');
+            console.log('Address:', taprootAddress.address);
+            console.log('Output Script:', taprootAddress.output);
+            console.log('Version:', taprootAddress.version);
+            console.log('Type:', taprootAddress.type);
 
             return {
-                txHex: tx.toHex(),
-                txId: tx.getId(),
-                scriptPath: scriptPath
+                keyPair,
+                taprootAddress
             };
         } catch (error) {
-            throw new Error(`Error creating Taproot spend: ${error.message}`);
-        }
-    }
-
-    createControlBlock(script) {
-        try {
-            // Create control block for script path spending
-            const leafHash = bitcoin.crypto.taggedHash('TapLeaf', 
-                Buffer.concat([Buffer.from([0xc0]), Buffer.from(script, 'hex')]));
-
-            return Buffer.concat([
-                Buffer.from([0xc0]),  // Leaf version
-                leafHash
-            ]);
-        } catch (error) {
-            throw new Error(`Error creating control block: ${error.message}`);
-        }
-    }
-
-    verifyTaprootSignature(tx, input, pubKey) {
-        try {
-            // Verify Taproot signature
-            const signatureHash = tx.hashForWitnessV1(
-                input.index,
-                [input.witnessUtxo.script],
-                [input.witnessUtxo.value],
-                bitcoin.Transaction.SIGHASH_ALL
-            );
-
-            return bitcoin.crypto.verifySchnorr(
-                signatureHash,
-                pubKey,
-                input.tapScriptSig[0].signature
-            );
-        } catch (error) {
-            throw new Error(`Error verifying Taproot signature: ${error.message}`);
-        }
-    }
-
-    displayTaprootDetails(address) {
-        try {
-            console.log('\nTaproot Address Details:');
-            console.log('======================');
-            console.log(`Address: ${address.address}`);
-            console.log(`Output Script: ${address.output}`);
-            console.log(`Spending Path: ${address.witness}`);
-            return address;
-        } catch (error) {
-            console.error('Error:', error.message);
+            console.error('Taproot demonstration failed:', error.message);
+            throw error;
         }
     }
 }
 
-// Example usage
 async function main() {
-    const taproot = new BitcoinTaproot('testnet');
-
     try {
-        // Generate Taproot key pair
-        const keyPair = taproot.generateTaprootKeyPair();
-        console.log('\nGenerated Key Pair:', keyPair);
-
-        // Create basic Taproot address (key path spending)
-        const keyPathAddress = taproot.createTaprootAddress(keyPair.publicKey);
-        taproot.displayTaprootDetails(keyPathAddress);
-
-        // Create script tree for script path spending
-        const scriptTree = taproot.createScriptTree([
-            // Example script: OP_1
-            '51',
-            // Example script: OP_DROP OP_TRUE
-            '7551'
-        ]);
-
-        // Create Taproot address with script tree
-        const scriptPathAddress = taproot.createTaprootAddress(keyPair.publicKey, scriptTree);
-        taproot.displayTaprootDetails(scriptPathAddress);
-
+        const taproot = new BitcoinTaproot('mainnet');
+        await taproot.demonstrateTaproot();
     } catch (error) {
         console.error('Error:', error.message);
     }

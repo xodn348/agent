@@ -1,10 +1,14 @@
 {
   "name": "bitcoin-script-interpreter",
   "version": "1.0.0",
-  "description": "Bitcoin Script language interpreter implementation",
+  "description": "Bitcoin Script Interpreter",
   "main": "bitcoin_script_interpreter.js",
+  "dependencies": {
+    "bitcoinjs-lib": "^6.1.5",
+    "ecpair": "^2.1.0",
+    "tiny-secp256k1": "^2.2.3"
+  },
   "scripts": {
-    "start": "node bitcoin_script_interpreter.js",
-    "test": "node bitcoin_script_interpreter.js"
+    "start": "node bitcoin_script_interpreter.js"
   }
 }

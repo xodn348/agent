@@ -1,13 +1,14 @@
 {
-  "name": "lightning-network",
+  "name": "bitcoin-lightning-network",
   "version": "1.0.0",
-  "description": "Basic Lightning Network implementation for Bitcoin",
+  "description": "Bitcoin Lightning Network Implementation",
   "main": "lightning_network.js",
   "scripts": {
     "start": "node lightning_network.js"
   },
   "dependencies": {
-    "bitcoinjs-lib": "^6.1.3",
-    "crypto": "^1.0.1"
+    "bitcoinjs-lib": "^6.1.5",
+    "ecpair": "^2.1.0",
+    "tiny-secp256k1": "^2.2.3"
   }
 }
