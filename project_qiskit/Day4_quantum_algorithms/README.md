@@ -32,7 +32,7 @@ pip install qiskit matplotlib numpy
 
 ## Usage
 
-```python
+```python3 quantum_algorithms.py
 from quantum_algorithms import QuantumAlgorithms
 
 qa = QuantumAlgorithms()

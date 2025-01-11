@@ -27,7 +27,7 @@ pip install qiskit qiskit-optimization networkx numpy
 
 ## Usage
 
-```python
+```python3 quantum_optimization.py
 from quantum_optimization import QuantumOptimizer
 
 # Create optimizer
