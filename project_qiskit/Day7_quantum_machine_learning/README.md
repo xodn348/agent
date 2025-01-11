@@ -28,7 +28,7 @@ pip install -r requirements.txt
 
 ## Usage
 
-```python
+```python3 quantum_ml.py
 from quantum_ml import QuantumML
 
 # Create instance
